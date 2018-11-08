@@ -1,0 +1,32 @@
+{#
+/**
+ * @file
+ * Default theme implementation of an image.
+ *
+ * Available variables:
+ * - attributes: HTML attributes for the img tag.
+ * - style_name: (optional) The name of the image style applied.
+ *
+ * @see template_preprocess_image()
+ *
+ * @ingroup themeable
+ */
+#}
+{% if style_name == 'social_large' %}
+
+  {% set classes = [
+    'hero-avatar'
+  ] %}
+
+{% else %}
+
+  {% set classes = [
+    theme.settings.image_shape ? theme.settings.image_shape,
+    theme.settings.image_responsive ? 'img-responsive',
+  ] %}
+
+{% endif %}
+{% set user_reference = element['#object'].uid.0.target_id %}
+{% set image_profile = element['#object'].field_profile_image.entity.uri.0.value %}
+ {{ get_url_param(user_reference, image_profile)|raw }}
+

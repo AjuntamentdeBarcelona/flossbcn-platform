@@ -1,0 +1,17 @@
+{# file_url(content.field_group_image.0['#item'].entity.getFileUri()) #}
+<div class="token-visual-drauta pos-rel card">
+	<a class="false-link" href="{{ url }}">{{ label }}</a>
+	
+	{% if content.field_group_image | render %}
+		
+		<div class="caja-40" style="background-image: url({{ file_url(content.field_group_image.0['#item'].entity.getFileUri())}})"></div>
+	
+	{% else %}
+	
+		<div class="caja-40"></div>
+	
+	{% endif %}
+	<div class="token-visual-drauta-content">
+		<h3 class="fs20">{{ label }}</h3>	
+	</div>
+</div>

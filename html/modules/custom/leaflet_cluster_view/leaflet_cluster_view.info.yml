@@ -1,0 +1,5 @@
+name: 'Leaflet cluster view'
+type: module
+description: 'View with cluster leaflet'
+core: 8.x
+package: 'Drauta'

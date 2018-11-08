@@ -1,0 +1,5 @@
+name: 'Widget openlayer'
+type: module
+description: 'Implements widget map with openlayer lib in geolocation field'
+core: 8.x
+package: 'Drauta'

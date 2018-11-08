@@ -1,0 +1,9 @@
+library-base-geoloc:
+  css:
+    theme:
+      assets/dist/ol-geocoder.min.css: {}
+      assets/style.css: {}
+  js:
+    assets/dist/ol-openlayer.js: {}
+    assets/dist/ol-geocoder.js: {}
+    assets/control-nominatim.js: {}

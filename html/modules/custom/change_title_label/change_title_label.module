@@ -1,0 +1,104 @@
+<?php 
+  use Drupal\Core\Url;
+
+function change_title_label_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+	if($form_id == 'views_exposed_form') {	
+		if(!empty($form['field_entity_type_target_id'])) {
+			$form['field_entity_type_target_id'] = change_title_label_convert_to_select_complert('entity_type', 'tax');
+		}	
+		if(!empty($form['field_scope_of_action_target_id'])) {
+			$form['field_scope_of_action_target_id'] = change_title_label_convert_to_select_complert('ambito_del_proyecto', 'tax');
+		}	
+		
+		if($form['#id'] == 'views-exposed-form-newest-groups-page-1') {
+			
+			
+			$form['#info']['filter-label']['label'] = t('Title');
+			$form['#info']['filter-field_entity_type_target_id']['label'] = t('Entity type');
+			$form['#info']['filter-field_scope_of_action_target_id']['label'] = t('Scope of action');
+			$form['#info']['filter-field_tag_target_id']['label'] = t('Technologies') . change_title_label_get_url_technologies();
+		}
+		
+		if($form['#id'] == 'views-exposed-form-newest-groups-page-all-groups') {
+			$form['#info']['filter-label']['label'] = t('Title');
+			$form['#info']['filter-field_tag_target_id']['label'] = t('Technologies') . change_title_label_get_url_technologies();
+			$form['#info']['filter-field_project_areas_target_id']['label'] = t('Project areas');
+		}
+		
+		if($form['#id'] == 'views-exposed-form-newest-users-page-newest-users') {
+			
+			$form['#info']['filter-uid']['label'] = t('Name');
+			$form['#info']['filter-init']['label'] = t('Email');
+			$form['#info']['filter-field_profile_interests_target_id']['label'] = t('Interests');
+			$form['#info']['filter-field_profile_expertise_target_id']['label'] = t('Experience');
+		}
+		
+		if($form['#id'] == 'views-exposed-form-upcoming-events-page-community-events') {
+			$form['#info']['filter-field_event_date_value']['label'] = t('State');
+			$form['#info']['filter-title']['label'] = t('Title');
+			$form['#info']['filter-field_technologies_target_id']['label'] = t('Technologies') . change_title_label_get_url_technologies();
+		}
+		
+		if($form['#id'] == 'views-exposed-form-latest-topics-page-latest-topics') {
+			$form['#info']['filter-title']['label'] = t('Title');
+			$form['#info']['filter-field_technologies_target_id']['label'] = t('Technologies') . change_title_label_get_url_technologies();
+			
+		}
+		
+	}	
+	if($form_id == 'user_register_form') {
+		//$form['#info']['filter-field-accept-privacy-policy-and-value']['label'] = t('Technologies');
+		$options = ['absolute' => TRUE];
+		$url = \Drupal\Core\Url::fromRoute('entity.node.canonical', ['node' => 2], $options);
+		$url = $url->toString();
+		
+		 $form['field_accept_privacy_policy_and_']['widget']['value']['#title'] = t('Accept').' ' . t(' privacy policy ') . t('and') . ' '. t('legal warning');
+		 
+		 $cadena_primera = 'For more information you can check';
+		 
+		 $language = \Drupal::languageManager()->getCurrentLanguage()->getId();
+		 
+		 if($language == 'es') {
+			 $cadena_primera = 'Para más información consulta';
+		 } else if ($language == 'ca') {
+			 $cadena_primera = 'Per a més informació consulta';
+		 }
+
+		 $form['field_accept_privacy_policy_and_']['widget']['value']['#description'] = $cadena_primera  . ' <a target="_blank" href="' . $url . '">'. t(' privacy policy ') .'</a> ' . t('and') .' <a target="_blank" href="' . $url . '">'. t('legal warning') .'</a>';
+	}
+	
+	
+}
+
+function change_title_label_get_url_technologies() {
+	$url = Url::fromRoute('view.all_technologies.page_1', ['view_id' => 'all_technologies' , 'display_id' =>  'page_1'])->toString();
+	return '<a class="see-all-technologies" href="' . $url . '">' . t('See all tecnologies') . '</a>';
+}
+
+function change_title_label_convert_to_select($id, $type) {
+	$retorno = array();
+	
+	if($type == 'tax') {
+		$vid = $id;
+		$terms = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree($vid);
+		foreach($terms as $term) {
+			$retorno[$term->tid] = $term->name;
+		}	
+	}	
+	return $retorno;	
+}
+
+function change_title_label_convert_to_select_complert( $id, $type) {
+	$retorno = array();
+	
+	$retorno = array();
+	$retorno['#type'] = 'select';
+	$retorno['#size'] = NULL;
+	$retorno['#empty_option']  = t('All'); 
+	$retorno['#multiple'] = FALSE;
+	$retorno['#options'] =  change_title_label_convert_to_select($id, $type); 
+	
+	
+	return $retorno;
+}
+

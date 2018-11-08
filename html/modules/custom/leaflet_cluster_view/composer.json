@@ -1,0 +1,14 @@
+{
+  "name": "drupal/leaflet_cluster_view",
+  "type": "drupal-module",
+  "description": "View with cluster leaflet",
+  "keywords": ["Drupal"],
+  "license": "GPL-2.0+",
+  "homepage": "https://www.drupal.org/project/leaflet_cluster_view",
+  "minimum-stability": "dev",
+  "support": {
+    "issues": "https://www.drupal.org/project/issues/leaflet_cluster_view",
+    "source": "http://cgit.drupalcode.org/leaflet_cluster_view"
+  },
+  "require": { }
+}

@@ -1,0 +1,7 @@
+/bin
+html/core
+html/profiles/contrib
+html/themes/contrib
+html/sites/default/files
+vendor/
+.idea

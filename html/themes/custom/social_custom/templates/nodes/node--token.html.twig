@@ -1,0 +1,14 @@
+<div class="token-visual-drauta pos-rel card">
+<a class="false-link" href="{{ url }}">{{ node.getTitle }}</a>
+{% if content.field_topic_image | render %}
+	<div class="img-inside-100">{{ content.field_topic_image }}</div>
+{% elseif content.field_event_image | render %}
+	<div class="img-inside-100">{{ content.field_event_image }}</div>
+{% else %}
+
+
+{% endif %}
+	<div class="token-visual-drauta-content">
+		<h3 class="fs20">{{ node.getTitle }}</h3>	
+	</div>
+</div>

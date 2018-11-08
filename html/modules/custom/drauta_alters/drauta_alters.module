@@ -1,0 +1,83 @@
+<?php 
+
+/**
+  * Hook_menu_local_tasks_alter
+  */
+function drauta_alters_preprocess_menu_local_action(&$variables){
+	
+	// ********
+	// Eliminar menu local action de la página /admin/group y /admin/group/types		
+	//*********
+	//Ruta actual
+	$route_name = \Drupal::routeMatch()->getRouteName();
+	
+	// Rutas afectadas 
+	$list_route_names = [
+		'entity.group.collection' => 1,
+		'entity.group_type.collection' => 1
+	];
+	// Eliminar links de menu local actions	
+	if (array_key_exists($route_name, $list_route_names)){
+		unset($variables['link']);
+	}
+}
+
+
+/**
+ * hook_entity_presave
+ */
+function drauta_alters_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+	if($form_id == 'group_public_group_edit_form') {
+		$form['#validate'][] = 'group_public_group_edit_form_validate_custom';		
+	} else if ($form_id == 'group_public_group_add_form') {
+		$form['#validate'][] = 'group_public_group_edit_form_validate_custom';	
+	}	
+}
+
+/* function drauta_alters_language_switch_links_alter(array &$links, $type, \Drupal\Core\Url $url) {
+	foreach ($links as $key => $value) {
+		$value['url']->setRouteParameter('langdrauta', $key); 
+	} 
+  
+} */
+
+/**
+ * Validar el formulario de grupo.
+ */
+function group_public_group_edit_form_validate_custom(&$form, \Drupal\Core\Form\FormStateInterface $form_state) {	
+	$values = $form_state->getValues();
+	$storage = $form_state->getStorage();
+	
+	if(array_key_exists('store_id', $storage)) {
+		$group_type = $form_state->getStorage()['store_id'];
+	} else if(array_key_exists('group_type', $values)) {
+		$group_type = $values['group_type'];
+	}
+	
+		
+	if(!empty($group_type)) {
+		$form_id = $values['form_id'];
+		$is_repe = FALSE;
+		$lim = 0;
+		
+		$current_title = $values['label'][0]['value']; 
+		if($form_id == 'group_public_group_edit_form') {
+			$lim = 1;	
+		}
+		
+		$db = \Drupal::database();
+		$query = $db->select('groups_field_data', 'gfd');
+		$query->fields('gfd', array('id'));
+		$query->condition('gfd.type', $group_type);
+		$query->condition('gfd.label', $current_title);
+		$result = $query->execute();
+		$result_fin = $result->fetchAll();
+		
+		if(count($result_fin) > $lim) {
+			$is_repe = TRUE;
+		}		
+		if($is_repe) {
+			$form_state->setErrorByName('title', t('The title is current in use.'));	
+		}				
+	}		
+}

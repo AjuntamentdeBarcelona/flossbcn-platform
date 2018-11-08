@@ -1,0 +1,31 @@
+<?php 
+function social_custom_preprocess_page(&$variables) {
+	/* $route_name = \Drupal::routeMatch()->getRouteName();	
+	$parameters = \Drupal::routeMatch()->getParameters(); 
+	kint($route_name); 
+	kint($parameters); */
+	
+	
+	$tempstore = \Drupal::service('user.private_tempstore')->get('change_lang');
+		
+	if(!empty($_GET['langdrauta'])) {
+		$language_selected = $_GET['langdrauta'];		
+		$tempstore->set('language_selected', $language_selected);	
+		$config = \Drupal::config('language.negotiation')->get('session');
+		$_SESSION[$config['parameter']] = $_GET['langdrauta'];	
+	} else {
+		
+		$language_selected = $tempstore->get('language_selected');	
+		if(!empty($language_selected)) {
+			 $config = \Drupal::config('language.negotiation')->get('session');
+			 $_SESSION[$config['parameter']] = $language_selected;				
+		} 		
+	}	
+}
+function social_custom_local_tasks_alter(&$local_tasks) {
+  // kint($local_tasks);
+}
+function social_custom__preprocess_node(&$variables) {
+  $language = \Drupal::languageManager()->getCurrentLanguage()->getId();
+  $vars['language'] = $language;
+}

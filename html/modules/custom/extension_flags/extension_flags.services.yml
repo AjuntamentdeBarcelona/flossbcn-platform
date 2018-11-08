@@ -1,0 +1,3 @@
+services:
+ extension_flags.table:
+   class: Drupal\extension_flags\ExtensionFlagsTable

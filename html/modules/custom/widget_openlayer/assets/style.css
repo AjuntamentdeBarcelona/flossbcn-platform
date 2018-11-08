@@ -1,0 +1,60 @@
+.ol-geocoder .gcd-txt-input {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: 5px 30px 5px 40px;
+  border: none;
+  text-indent: 6px;
+  background-color: transparent;
+  font-family: inherit;
+  font-size: .875em;
+}
+.ol-geocoder ul.gcd-txt-result {
+  position: absolute;
+  top: 4.575em;
+  left: 0;
+  width: 25em;
+  max-height: 18.75em;
+  white-space: normal;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background-color: #fff;
+  border-radius: 4px;
+  border-top: none;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-shadow: 0 1px 7px rgba(0,0,0,.8);
+  transition: max-height .3s ease-in;
+}
+
+.ol-overlaycontainer-stopevent .ol-zoom.ol-unselectable.ol-control{
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+.ol-attribution, .ol-rotate.ol-unselectable {
+  display: none;
+}
+.icon-img-oculto {
+  display: none
+}
+form .icon-img-oculto {
+  display: inline;
+}
+#marker {
+        width: 20px;
+        height: 20px;
+        border: 1px solid #088;
+        border-radius: 10px;
+        background-color: #0FF;
+        opacity: 0.5;
+      }
+.ocultar-panel, .form-item-field-geolocation-0-lat, .form-item-field-geolocation-0-lng {
+	display: none!important;
+}

@@ -1,0 +1,6 @@
+{% if content.field_technologies['#items'] %}
+<h5>{% trans %}Technologies{% endtrans %}</h5>
+{% for item in content.field_technologies['#items'] %}
+  <div class="badge badge--pill badge--large badge-default">{{ item.entity.label }}</div>
+{% endfor %}
+{% endif %}

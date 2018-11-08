@@ -1,0 +1,5 @@
+name: 'drauta_social'
+type: 'module'
+description: 'Drauta social'
+core: '8.x'
+package: 'drauta' 

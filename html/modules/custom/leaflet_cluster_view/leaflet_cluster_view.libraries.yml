@@ -1,0 +1,11 @@
+library-cluster_view_leaflet:
+  css:
+    theme:
+      assets/css/leaflet.css: {}
+      assets/css/MarkerCluster.css: {}
+      assets/css/MarkerCluster.Default.css: {}
+  js:
+    assets/js/leaflet.js: {}
+    assets/js/leaflet.markercluster.js: {}
+    assets/js/markers.js: {}
+    assets/js/leaf-script.js: {}

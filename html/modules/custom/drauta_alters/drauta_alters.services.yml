@@ -1,0 +1,9 @@
+services:
+  drauta_alters.event_block_page:
+    class: Drupal\drauta_alters\EventSubscriber\BlockPages
+    tags:
+      - {name: event_subscriber}
+  drauta_alters.print_icon:
+    class: Drupal\drauta_alters\IconUser
+    tags:
+      - { name: twig.extension }

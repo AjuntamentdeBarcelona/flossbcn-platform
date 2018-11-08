@@ -1,0 +1,27 @@
+name: Social Custom theme
+description: Social Custm.
+type: theme
+core: 8.x
+base theme: socialblue
+
+libraries:
+  - social_custom/base-social-custom
+  - social_custom/slick-slider-custom
+  
+regions:
+  hidden: Hidden
+  topheader: TopHeader
+  header: Header
+  headermenu: Headermenu
+  breadcrumb: Breadcrumb
+  hero: Hero
+  secondary_navigation: Secondary navigation
+  content_top: Content top
+  title: Page title
+  content: Content
+  complementary_top: Complementary top
+  complementary_bottom: Complementary bottom
+  content_bottom: Content bottom
+  sidebar_first: Sidebar First
+  sidebar_second: Sidebar Second
+  footer: Footer

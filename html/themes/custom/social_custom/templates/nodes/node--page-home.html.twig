@@ -1,0 +1,147 @@
+{# SUPERIOR #}
+<div class="pos-rel main-image-front" {% if content.field_image | render %} style="background-image: url({{ content.field_image[0]['#item'].entity.uri.value | image_style('optimizacion_global') }})" {% endif %}>
+ <div class="capa-gris"></div>
+ <div class="container">
+ <div class="cover-wrap color-white">
+      <div class="hero-canvas"> 
+            <div class="field field--name-field-text-block field--type-text-long field--label-hidden field--item">
+	    		{% if content.field_showed_title | render %}
+	            <h1>{{ content.field_showed_title.0 }}</h1>
+	            {% endif %}
+	            <div class="fs20">{{ content.field_lead }}</div>
+            </div>
+            
+			{% if not logged_in %}
+				<a href="{{ path('user.register') }}" class="btn btn-primary waves-effect waves-btn waves-light">{% trans %}Sign up{% endtrans %}</a>
+				<a href="{{ path('user.login') }}" class="btn btn-default waves-effect waves-btn">{% trans %}Login{% endtrans %}</a>
+			{% endif %}
+      </div>
+    </div>  
+ </div>
+</div>
+
+
+
+{# LEAD #}
+<div class="background-1 section-marker">
+	<div class="container text-center container-custom">
+		<div class="fs28">
+			{{ content.body }}
+		</div>
+	</div>
+</div>
+<div class="container">
+	{% if content.field_titol_map	 | render %}
+		<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_titol_map.0 }}</h2>	
+	{% endif %}
+
+{{ leaflet_views_embed_view_custom_query() }}
+</div>
+
+{# DESTACATS #}
+<div>
+	<div class="container container-custom section-marker">
+		{% if content.field_titol_destacats | render %}
+			<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_titol_destacats.0 }}</h2>	
+		{% endif %}
+		
+		{# DESTACADOS #}	
+		{% if content.field_destacar | render %}
+		{% set count = 0 %}
+		<div class="row-drauta igualar-alturas">
+		{% for img in content.field_destacar['#items'] %}
+		   <div class="col4 col">
+		     {{ content.field_destacar[count] }}
+		   </div>
+		   {% set count = count + 1 %}
+		 {% endfor %}
+		</div>
+		{% endif %}
+		{# FIN DESTACADOS #}	
+	</div>
+</div>
+
+
+
+{# DESTACATS TOPIC Y EVENT FLOSSBCN#}
+<div class="container container-custom section-marker-bottom color-teaser-inside">
+	
+	<div class="row-drauta">
+	<div class="col2 col">	
+	{% if content.field_flossbcn_title	 | render %}
+		<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_flossbcn_title.0 }}</h2>	
+	{% endif %}
+	
+		{{ drupal_view('topic_floss', 'event', 4) }}
+		{{ drupal_view('topic_floss', 'topics', 4) }}	
+	</div>
+	<div class="col2 col">
+		{% if content.field_titol_xxss	 | render %}
+		<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_titol_xxss.0 }}</h2>	
+	{% endif %}
+	
+				<a class="twitter-timeline" data-height="455" href="https://twitter.com/flossbcn?ref_src=twsrc%5Etfw">Tweets by flossbcn</a> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+
+	</div>
+	</div>
+
+</div>
+
+
+
+
+{#
+<div class="container container-custom section-marker-bottom color-teaser-inside">
+	{% if content.field_flossbcn_title	 | render %}
+		<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_flossbcn_title.0 }}</h2>	
+	{% endif %}
+	
+
+	<div class="row-drauta">
+	{% if content.field_topic_and_event_highlight | render %}
+		{% set count = 0 %}
+		{% for img in content.field_topic_and_event_highlight['#items'] %}
+		<div class="col2 col">
+	     {{ content.field_topic_and_event_highlight[count] }}
+		 </div>
+		 {% set count = count + 1 %}
+		{% endfor %}
+		
+	{% else %}
+	<div class="col2 col">	
+		{{ drupal_view('topic_floss', 'event', 4) }}
+	</div>
+	<div class="col2 col">
+		{{ drupal_view('topic_floss', 'topics', 4) }}	
+	</div>
+	{% endif %}
+	
+	
+	
+	
+	
+	</div>
+
+</div>
+#}
+
+{#
+<div class="container container-custom ">	
+	
+	{% if content.field_titol_xxss	 | render %}
+		<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_titol_xxss.0 }}</h2>	
+	{% endif %}	
+	
+	<div class="row-drauta">
+		<div class="inside-col">
+		{{ drupal_view('social', 'twitter') }}
+		</div>
+	</div>	
+</div>
+
+#}
+{# SOCIAL NETWORK #}
+
+
+
+
