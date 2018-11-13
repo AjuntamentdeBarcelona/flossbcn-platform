@@ -1,0 +1,21 @@
+<?php
+
+/**
+ * @file
+ * Custom blocks main file.
+ *
+ * @author Roger Codina
+ */
+
+/**
+ * Implements hook_theme().
+ *
+ * Custom twig templates.
+ */
+function custom_blocks_theme() {
+  return array(
+    'drauta_sidebar_group_block' => array(
+      'variables' => array('group' => NULL),
+    ),
+  );
+}

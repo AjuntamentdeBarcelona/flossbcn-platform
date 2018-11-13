@@ -1,0 +1,31 @@
+{{ attach_library('socialbase/file') }}
+
+	  {% if content.field_files|render %}  
+      <div class="list-item list-item--withlabel group-fields corregir-files">
+          <div class="list-item__label">{% trans %}Files{% endtrans %}</div>
+          <div class="list-item__text">
+          
+          <div class="field field--name-field-arxius field--type-file field--label-hidden field--items">
+          {% set count = 0 %}
+          {% for file in content.field_files['#items'] %}       
+			
+			{% set node_icon = content.field_files[count]['#file'].get('filemime').getValue[0].value %}
+			
+			{% set link = file_url(content.field_files[count]['#file'].get('uri').getValue[0]['value']) %}
+			{% set file_size = content.field_files[count]['#file'].get('filesize').getValue[0]['value'] / 1000 %}
+			{% set path_to_socialbase = 'profiles/contrib/social/themes/socialbase' %}
+			{% set name = content.field_files[count]['#file'].get('filename').getValue[0]['value'] %}
+			
+			
+			{% set node_icon = node_icon |replace({'application/': ''}) %}
+			<div class="file file--mime-application-pdf file--application-pdf">
+			    <span class="file-icon"><img class="node-file__icon" src="/{{ path_to_socialbase }}/assets/images/mime-icons/icon_1_{{ node_icon }}_x16.png" srcset="/{{ path_to_socialbase }}/assets/images/mime-icons/icon_1_{{ node_icon }}_x32.png 2x" alt="{{ node_icon }}" /></span>
+			    <a target="_blank" href="{{ link }}"><span class="file-link">{{ name }}</span></a>
+			    <span class="file-size">{{ file_size |round(2, 'floor') }}Kb</span>   
+			</div>               
+          {% set count = count + 1 %}
+		  {% endfor %}
+		    </div>		          
+          </div>
+		</div>
+      {% endif %} 

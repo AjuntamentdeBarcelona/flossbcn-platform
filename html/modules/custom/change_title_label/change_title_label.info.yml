@@ -1,0 +1,5 @@
+name: 'change title label'
+type: 'module'
+description: 'Module that changes the label of title of nodes'
+core: '8.x'
+package: 'drauta' 

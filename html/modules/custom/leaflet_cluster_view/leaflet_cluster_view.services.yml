@@ -1,0 +1,6 @@
+services:
+  leaflet_cluster_view.twig.extension:
+    class: Drupal\leaflet_cluster_view\TwigExtension\LeafletClusterTwigExtension
+    arguments: []
+    tags:
+      - { name: twig.extension }

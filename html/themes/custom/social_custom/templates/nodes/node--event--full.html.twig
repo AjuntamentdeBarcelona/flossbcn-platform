@@ -1,0 +1,100 @@
+{% extends "node--full.html.twig" %}
+{# add specific fields to body for events only #}
+{% block nodefull_specialfields %}
+
+ <div class="report-link  mb30 ">
+ 	{{ content.flag_report_content}}
+ </div>
+  <div class="article__special-fields">
+    <div class="article__special-field">
+      <svg class="article__special-fields-icon"><use xlink:href="#icon-event"></use></svg>
+      <span class="sr-only">{% trans %}Event date {% endtrans %}</span>
+      <span class="inline-center">
+        <strong>{{event_date}}</strong>
+      </span>
+    </div>
+    {% if content.field_event_address|render or content.field_event_location|render %}
+      <div class="article__special-field">
+        <svg class="article__special-fields-icon"><use xlink:href="#icon-location"></use></svg>
+        <span class="sr-only">{% trans %}Event location {% endtrans %}</span>
+        <span class="inline-center">
+          <strong>{{content.field_event_location}}</strong>
+          {% if content.field_event_address|render is not empty and content.field_event_location|render is not empty %} &bullet; {% endif %}
+          {{content.field_event_address}}
+        </span>        
+      </div>
+    {% endif %}    
+  </div>
+{% endblock %}
+
+
+{% block nodefull_body %}
+
+
+<div class="link-content">
+	{{ content.body }}
+	{% if content.field_web|render %}  
+      <div class="list-item list-item--withlabel group-fields">
+          <div class="list-item__label">{% trans %}Web{% endtrans %}</div>
+          <div class="list-item__text">
+		  <a target="_blank" href="{{ content.field_web.0 }}">{{ content.field_web.0 }}</a>
+          </div>
+      </div>
+    {% endif %}  
+    
+    {% if content.field_email|render %}  
+      <div class="list-item list-item--withlabel group-fields">
+          <div class="list-item__label">{% trans %}Email{% endtrans %}</div>
+          <div class="list-item__text">
+		  	{{ content.field_email }}
+          </div>
+      </div>
+    {% endif %} 
+    
+    {% if content.field_telephone|render %}  
+      <div class="list-item list-item--withlabel group-fields">
+          <div class="list-item__label">{% trans %}Phone{% endtrans %}</div>
+          <div class="list-item__text">
+		  	{{ content.field_telephone }}
+          </div>
+      </div>
+    {% endif %}   
+    
+    {% if content.field_mobile_phone|render %}  
+      <div class="list-item list-item--withlabel group-fields">
+          <div class="list-item__label">{% trans %}Mobile phone{% endtrans %}</div>
+          <div class="list-item__text">
+		  	{{ content.field_mobile_phone }}
+          </div>
+      </div>
+    {% endif %}  
+	
+	
+	 <div class="list-item list-item--withlabel group-fields">
+        <div class="list-item__label">{% trans %}Social networks{% endtrans %}</div>
+        <div class="list-item__text">        
+   
+        	{% if content.field_facebook|render %}
+        		<a target="_blank" href=" {{ content.field_facebook.0 }}">Facebook</a>
+        	{% endif %}
+        	
+        	{% if content.field_linkedin|render %}
+        		<a target="_blank" href=" {{ content.field_linkedin.0 }}">Linkedin</a>
+        	{% endif %}
+        	
+        	{% if content.field_twitter|render %}
+        		<a target="_blank" href=" {{ content.field_instagram.0 }}">Twitter</a>
+        	{% endif %}
+         
+        	{% if content.field_instagram|render %}
+        		<a target="_blank" href=" {{ content.field_instagram.0 }}">Instagram</a>
+        	{% endif %} 
+           
+        </div>
+    </div>   
+	 
+	 {% include directory ~ '/templates/includes/technologies.html.twig' %}	  
+	 {% include directory ~ '/templates/includes/alternate-files.html.twig' %}
+      	
+</div>
+{% endblock %}

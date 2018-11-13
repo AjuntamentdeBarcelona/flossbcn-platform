@@ -1,0 +1,33 @@
+{% if node.get('field_type').getValue()[0]['value'] == 2 %}
+<div class="bloque-social bloque-social-instagram card">		
+		<div class="imagen-social-content mb0" style="background-image: url({{ content.field_image_url.0 }})"></div>
+		<div class="bloque-social-container ">
+			{% set conBody %}
+			{{ content.field_text_social  }}
+			{% endset %}
+			{{ conBody|striptags}}	
+
+		</div>
+</div>
+{% elseif node.get('field_type').getValue()[0]['value'] == 1 %}
+<div class="bloque-social bloque-social-twitter">
+	<div class="bloque-social-container card">
+		<p>Twitter</p>
+					{% set conBody %}
+
+		{{ content.field_text_social  }}
+		{% endset %}
+		{{ conBody|striptags}}		
+	</div>
+</div>
+{% elseif node.get('field_type').getValue()[0]['value'] == 0 %}
+<div class="bloque-social bloque-social-twitter">
+	<div class="bloque-social-container card">
+		<p>Facebook</p>
+		{% set conBody %}
+		{{ content.field_text_social }}
+		{% endset %}
+		{{ conBody|striptags}}	
+	</div>
+</div>
+{% endif %}

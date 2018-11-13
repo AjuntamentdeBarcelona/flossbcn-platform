@@ -1,0 +1,87 @@
+<?php
+
+/**
+ * @file
+ * Contains leaflet_cluster_view.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function leaflet_cluster_view_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the leaflet_cluster_view module.
+    case 'help.page.leaflet_cluster_view':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('View with cluster leaflet') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Hook_preprocess_page
+ */
+function leaflet_cluster_view_preprocess_page(&$variables) {
+  $variables['#attached']['drupalSettings']['leaflet_cluster_view']['path_module'] = drupal_get_path('module', 'leaflet_cluster_view');
+  $variables['#attached']['drupalSettings']['leaflet_cluster_view']['img1'] = drupal_get_path('module', 'leaflet_cluster_view') . '/assets/images/pin24.png';
+  $variables['#attached']['drupalSettings']['leaflet_cluster_view']['img2'] = drupal_get_path('module', 'leaflet_cluster_view') . '/assets/images/pin48.png';
+  
+  	// Sacar párametro.
+	if(!empty($_GET)) {	
+		$variables['parametersurldrupal'] = $_GET;	
+		/* if(!empty($_GET['typeview'])) {
+			$variables['parametersurl'] = $_GET['typeview'];
+		}		*/
+	}	
+}
+
+/**
+ * Implements hook_theme().
+ */
+function leaflet_cluster_view_theme() {
+  return [
+    'leaflet_cluster_view' => [
+      'render element' => 'children',
+    ],
+    'leaflet_cluster_view_show' => [
+      'variables' => array('test_var' => NULL),
+    ]
+  ];
+}
+
+function leaflet_cluster_view_preprocess_node(&$variables) {	
+	// Sacar párametro.
+	if(!empty($_GET)) {	
+		$variables['parametersurldrupal'] = $_GET;	
+		/* if(!empty($_GET['typeview'])) {
+			$variables['parametersurl'] = $_GET['typeview'];
+		}		*/
+	}	
+}
+
+
+/**
+  * Hook_menu_local_tasks_alter
+  */
+function leaflet_cluster_view_menu_local_tasks_alter(&$data, $route_name, \Drupal\Core\Cache\RefinableCacheableDependencyInterface &$cacheability) {
+	if(!empty($data['tabs']) && !empty($data['tabs'][0]) && !empty($data['tabs'][0]['social_group.about'])) {
+			$data['tabs'][0]['social_group.about']['#weight'] = -1;
+	}
+	
+	if(!empty($data['tabs']) && !empty($data['tabs'][0]) && !empty($data['tabs'][0]['social_profile.information'])) {
+			$data['tabs'][0]['social_profile.information']['#weight'] = -20;
+	}
+	
+	if(!empty($data['tabs']) && !empty($data['tabs'][0]) && !empty($data['tabs'][0]['social_group.members'])) {
+			$data['tabs'][0]['social_group.members']['#link']['title'] = t('Followers');
+	}
+	
+
+	
+	
+}

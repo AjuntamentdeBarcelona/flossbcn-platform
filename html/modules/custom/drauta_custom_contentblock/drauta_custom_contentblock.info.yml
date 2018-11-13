@@ -1,0 +1,8 @@
+name: Drauta Custom Block - Grups en events Sidebar
+description: Drauta Custom Block - Grups en events Sidebar
+core: 8.x
+package: Custom
+dependencies:
+- node
+- block
+type: module

@@ -1,0 +1,177 @@
+{#
+/**
+ * @file
+ * Default theme implementation to display a group.
+ *
+ * Available variables:
+ * - group: The group entity with limited access to object properties and
+ *   methods. Only "getter" methods (method names starting with "get", "has",
+ *   or "is") and a few common methods such as "id" and "label" are available.
+ *   Calling other methods (such as group.delete) will result in an exception.
+ * - label: The title of the group.
+ * - content: All group items. Use {{ content }} to print them all,
+ *   or print a subset such as {{ content.field_example }}. Use
+ *   {{ content|without('field_example') }} to temporarily suppress the
+ *   printing of a given child element.
+ * - url: Direct URL of the current group.
+ * - attributes: HTML attributes for the containing element.
+ *   The attributes.class element may contain one or more of the following
+ *   classes:
+ *   - group: The current template type (also known as a "theming hook").
+ *   - group--[type]: The current group type. For example, if the group is a
+ *     "Classroom" it would result in "group--classroom". Note that the machine
+ *     name will often be in a short form of the human readable label.
+ *   - group--[view_mode]: The View Mode of the group; for example, a
+ *     teaser would result in: "group--teaser", and full: "group--full".
+ * - title_attributes: Same as attributes, except applied to the main title
+ *   tag that appears in the template.
+ * - content_attributes: Same as attributes, except applied to the main
+ *   content tag that appears in the template.
+ * - title_prefix: Additional output populated by modules, intended to be
+ *   displayed in front of the main title tag that appears in the template.
+ * - title_suffix: Additional output populated by modules, intended to be
+ *   displayed after the main title tag that appears in the template.
+ * - view_mode: View mode; for example, "teaser" or "full".
+ * - page: Flag for the full page state. Will be true if view_mode is 'full'.
+ *
+ * @see template_preprocess_group()
+ *
+ * @ingroup themeable
+ */
+#}
+
+  <div{{ attributes.addClass('card') }}>
+    
+    <div class="link-content">
+    
+    <div{{ content_attributes.addClass('card__body body-text') }}>
+    	<div class="report-link mb30">
+			{{ content.flag_report_group}}
+		</div>
+      {% if content.field_group_description|render %}
+      	{{ content.field_group_description }}
+      {% endif %}
+	  
+      
+      {% if content.field_phone|render %}  
+      <div class="list-item list-item--withlabel group-fields">
+          <div class="list-item__label">{% trans %}Phone{% endtrans %}</div>
+          <div class="list-item__text">
+		  {{ content.field_phone }}
+          </div>
+      </div>
+      {% endif %}
+      
+      
+      {% if content.field_mobile_phone|render %}  
+      <div class="list-item list-item--withlabel group-fields">
+          <div class="list-item__label">{% trans %}Mobile Phone{% endtrans %}</div>
+          <div class="list-item__text">
+		  {{ content.field_mobile_phone	 }}
+          </div>
+      </div>
+      {% endif %}
+      
+      
+      
+       {% if content.field_email|render %}  
+      <div class="list-item list-item--withlabel group-fields">
+          <div class="list-item__label">{% trans %}Email{% endtrans %}</div>
+          <div class="list-item__text">
+		  {{ content.field_email	 }}
+          </div>
+      </div>
+      {% endif %}
+      
+      <div class="list-item list-item--withlabel group-fields">
+          <div class="list-item__label">{% trans %}Projects{% endtrans %}</div>
+          <div class="list-item__text">
+          	{{ drupal_view('projects', 'block_1') }}         
+          </div>
+      </div>
+	  
+	  {% if content.field_web|render %}  
+      <div class="list-item list-item--withlabel group-fields">
+          <div class="list-item__label">{% trans %}Web{% endtrans %}</div>
+          <div class="list-item__text">
+		  <a target="_blank" href="{{ content.field_web.0 }}">{{ content.field_web.0 }}</a>
+          </div>
+      </div>
+      {% endif %}
+	  
+	  
+	  <div class="list-item list-item--withlabel group-fields">
+        <div class="list-item__label">{% trans %}Social networks{% endtrans %}</div>
+        <div class="list-item__text">        
+   
+        	{% if content.field_facebook|render %}
+        		<a target="_blank" href=" {{ content.field_facebook.0 }}">Facebook</a>
+        	{% endif %}
+        	
+        	{% if content.field_linkedin|render %}
+        		<a target="_blank" href=" {{ content.field_linkedin.0 }}">Linkedin</a>
+        	{% endif %}
+        	
+        	{% if content.field_twitter|render %}
+        		<a target="_blank" href=" {{ content.field_twitter.0 }}">Twitter</a>
+        	{% endif %}
+         
+        	{% if content.field_instagram|render %}
+        		<a target="_blank" href=" {{ content.field_instagram.0 }}">Instagram</a>
+        	{% endif %}    
+        	
+        	{% if content.field_gitlab|render %}
+        		<a target="_blank" href=" {{ content.field_gitlab.0 }}">Gitlab</a>
+        	{% endif %}   
+        	
+        	{% if content.field_github|render %}
+        		<a target="_blank" href=" {{ content.field_github.0 }}">Github</a>
+        	{% endif %}        
+        </div>
+    </div>   
+	  
+	  
+	  
+	 {% if content.field_entity_type|render %}  
+      <div class="list-item list-item--withlabel group-fields">
+          <div class="list-item__label">{% trans %}Entity type{% endtrans %}</div>
+          <div class="list-item__text">
+		  {{ content.field_entity_type}}
+          </div>
+      </div>
+      {% endif %}
+      
+      {% if content.field_scope_of_action|render %}  
+      <div class="list-item list-item--withlabel group-fields">
+          <div class="list-item__label">{% trans %}Scope of action{% endtrans %}</div>
+          <div class="list-item__text">
+		  {{ content.field_scope_of_action}}
+          </div>
+      </div>
+      {% endif %}
+      
+    
+	  
+	   {% include directory ~ '/templates/includes/technologies.html.twig' %}
+	  
+	  
+	  
+	  {% if content.field_arxius|render %}  
+      <div class="list-item list-item--withlabel group-fields">
+          <div class="list-item__label">{% trans %}Files{% endtrans %}</div>
+          <div class="list-item__text">
+		  {{ content.field_arxius }}
+          </div>
+      </div>
+      {% endif %}
+      
+      
+      
+      
+     
+  
+     
+    </div>
+     
+    </div>
+  </div>

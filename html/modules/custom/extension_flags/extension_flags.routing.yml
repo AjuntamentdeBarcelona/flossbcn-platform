@@ -1,0 +1,32 @@
+extension_flags.groups:
+  path: '/admin/reported/groups'
+  defaults:
+    _controller: \Drupal\extension_flags\Controller\DataController::groups
+    _title: 'Reported Entities and Projects'
+  requirements:
+    _role: 'administrator+sitemanager+editor'
+    
+extension_flags.stream:
+  path: '/admin/reported/stream'
+  defaults:
+    _controller: \Drupal\extension_flags\Controller\DataController::stream
+    _title: 'Reported Streams'
+  requirements:
+    _role: 'administrator+sitemanager+editor'
+    
+extension_flags.comments:
+  path: '/admin/reported/comments'
+  defaults:
+    _controller: \Drupal\extension_flags\Controller\DataController::comments
+    _title: 'Reported comments'
+  requirements:
+    _role: 'administrator+sitemanager+editor'
+    
+extension_flags.content:
+  path: '/admin/reported/content'
+  defaults:
+    _controller: \Drupal\extension_flags\Controller\DataController::contents
+    _title: 'Reported topics and events'
+  requirements:
+    _role: 'administrator+sitemanager+editor'
+  

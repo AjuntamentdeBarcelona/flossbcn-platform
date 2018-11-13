@@ -1,0 +1,13 @@
+base-social-custom:
+  css:
+    base:      
+      assets/style.css: {preprocess: false}
+  js:
+      assets/script.js: {preprocess: false}
+slick-slider-custom:
+  css:
+    base:
+      assets/libs/slick/slick.css: {}
+      assets/libs/slick/slick-theme.css: {}
+  js:
+      assets/libs/slick/slick.min.js: {} 

@@ -1,0 +1,16 @@
+{% if page.topheader %}
+<div class="topheaderbold">
+	
+  <div class="container">{{ page.topheader }}<div class="beta-icon"><span>Beta</span></div></div>
+  </div>
+{% endif %}
+{% if page.header %}  
+<div class="pos-rel">
+  {{ page.header }}  
+  
+  <button href="#" data-toggle="collapse" data-target="#main-navigation" type="button" aria-expanded="false" class="navbar-toggle collapsed button-menu-def">
+    <span>Menu</span>
+    <span class="sr-only">Toggle navigation</span>
+  </button>
+</div>
+{% endif %}

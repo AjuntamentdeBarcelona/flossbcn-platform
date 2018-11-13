@@ -1,0 +1,37 @@
+<?php
+
+/**
+ * @file
+ * Contains widget_openlayer.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function widget_openlayer_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the widget_openlayer module.
+    case 'help.page.widget_openlayer':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Implements widget map with openlayer lib in geolocation field') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+
+
+/**
+ * Implements hook_theme().
+ */
+function widget_openlayer_theme() {
+  return [
+    'widget_openlayer' => [
+      'render element' => 'children',
+    ],
+  ];
+}

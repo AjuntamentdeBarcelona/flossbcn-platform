@@ -1,0 +1,342 @@
+<?php 
+use \Drupal\node\Entity\Node;
+
+/**
+ * Parameters to acces to Social Networks.
+ */
+function drauta_social_parameters() {  
+  return array(
+    'twitter_consumer_key' => 'rWLP1KMxNptjW5j7cVZKNYkmt',
+    'twitter_consumer_secret' => 'RnAXZX9VGbZs94qEg8AED1gfBqWQQSka3gFy7GpvxGBhlpFNKC',
+    'twitter_name' => 'flossbcn',
+    'facebook_id' => '',
+    'facebook_acces_token' => '',
+    'facebook_name' => '',
+    'max_facebook_posts' => 5,
+    'instagram_id_num' => '',
+    'acces_token_instagram' => '',
+    'instagram_name' => '',
+    'max_instagram_posts' => 5
+  ); 
+}
+
+/**
+ * Get Facebook feeds.
+ */
+ function drauta_social_get_feeds_facebook($configuracion) {
+  $retorno = array();  
+  
+  $max_posts = $configuracion['max_facebook_posts']; 
+  $accessToken = $configuracion['facebook_acces_token'];
+    
+  $id = $configuracion['facebook_id'];  
+  
+  // Get all post.  
+  $posts = drauta_social_petition_facebook($id, 'posts', $accessToken);
+  
+  if(is_array($posts)){  
+    if(array_key_exists('data', $posts)) {
+      $count = 0;
+      foreach($posts['data'] as $elem) {
+        if($count >= $max_posts) {
+          break;
+        }
+        
+        $likes = drauta_social_petition_facebook($elem['id'], 'likes', $accessToken);
+        $comments = drauta_social_petition_facebook($elem['id'], 'comments', $accessToken);
+        $share = drauta_social_petition_facebook($elem['id'], 'sharedposts', $accessToken);
+        
+        $num_likes = 0;
+        $num_comments = 0;
+        $num_share = 0;
+        
+        if(is_array($likes)) {
+         if(array_key_exists('data', $likes)) {
+          $num_likes = count($likes['data']);
+          } 
+        }
+        if(is_array($comments)) {
+          if(array_key_exists('data', $comments)) {
+            $num_comments = count($comments['data']);
+          }
+        }
+        if(is_array($share)) {
+          if(array_key_exists('data', $share)) {
+            $num_share = count($share['data']);
+          }
+        }       
+        
+        $retorno[$count] = $elem; 
+        $retorno[$count]['likes'] = $num_likes;
+        $retorno[$count]['comments'] = $num_comments;
+        $retorno[$count]['share'] = $num_share;
+        
+        $count++;            
+      }    
+    }
+  }  
+   
+  return $retorno;     
+ }
+ 
+ 
+ function drauta_social_petition_facebook($id, $type, $accessToken) {
+  /* $url = "https://graph.facebook.com/$id/$type?access_token=$accessToken";    
+  $result = file_get_contents($url);    
+  $decoded = json_decode($result, true);*/ 
+  
+  $curl_handle=curl_init();
+  curl_setopt($curl_handle, CURLOPT_URL,"https://graph.facebook.com/$id/$type?access_token=$accessToken");
+  curl_setopt($curl_handle, CURLOPT_CONNECTTIMEOUT, 2);
+  curl_setopt($curl_handle, CURLOPT_RETURNTRANSFER, 1);
+  curl_setopt($curl_handle, CURLOPT_USERAGENT, 'Your application name');
+  $query = curl_exec($curl_handle);
+  curl_close($curl_handle);
+  
+  $decoded = json_decode($query, true);
+  
+  
+  return  $decoded;
+ } 
+ 
+/**
+ * Get Feeda Twitter.
+ */
+function drauta_social_get_feeds_twitter($configuracion) {
+  
+  $ruta  = drupal_get_path('module', 'drauta_social').'/twitter-api-php-master/TwitterAPIExchange.php';
+  require_once $ruta;    
+  
+  $settings = array(
+    'consumer_key' => $configuracion['twitter_consumer_key'],
+    'consumer_secret' => $configuracion['twitter_consumer_secret'],      
+    'oauth_access_token' => '',
+    'oauth_access_token_secret' => '',
+  );
+  
+  // Set here the Twitter account from where getting latest tweets
+  $screen_name = $configuracion['twitter_name'];
+  
+  $url = 'https://api.twitter.com/1.1/statuses/user_timeline.json';
+  $getfield = "?screen_name={$screen_name}";
+  $requestMethod = 'GET';
+  
+  $twitter = new TwitterAPIExchange($settings);
+  $user_timeline = $twitter
+    ->setGetfield($getfield)
+    ->buildOauth($url, $requestMethod)
+    ->performRequest();
+    
+  $feeds_twitter = json_decode($user_timeline);
+  
+  $feeds_twitter_without_answers = array();
+  
+  foreach($feeds_twitter as $feed) {
+    if($feed->in_reply_to_status_id == null) {
+      $feeds_twitter_without_answers[] = $feed;
+    }
+  } 
+  return $feeds_twitter_without_answers;    
+}
+
+/**
+ * Get Feeda Instagram.
+ */
+function drauta_social_get_feeds_instagram($configuracion) {    
+	$user_id_num = $configuracion['instagram_id_num'];
+    $acces_token = $configuracion['acces_token_instagram'];
+    
+    $url_3 = 'https://api.instagram.com/v1/users/' . $user_id_num . '/media/recent/?access_token=' . $acces_token ;
+    
+    $return = drauta_social_rudr_instagram_api_curl_connect($url_3);
+    
+    $return_data = $return->data;
+    
+    return $return_data;	
+	
+}
+
+/**
+ * Create nodes or updates nodes of Facebook.
+ */
+ function drauta_social_create_or_updates_nodes_facebook() {
+  $configuracion = drauta_social_parameters();
+  $feeds = drauta_social_get_feeds_facebook($configuracion);
+    if(is_array($feeds)) {    
+      foreach($feeds as $feed) {
+        $referencia_id = $feed["id"];
+        $nodos_mismo_id = drauta_social_exists_node($referencia_id);        
+        
+        $fecha_array = explode('+', $feed['created_time']);
+        $parametres = array(
+          'type' => 'social_content',
+          'title' => $referencia_id,
+          'field_comments_social' => $feed['comments'],
+          'field_date_social' => $fecha_array[0],
+          'field_likes_social' => $feed['likes'],
+          'field_referencia_social' => $feed['id'],
+          'field_share_social' =>  $feed['share'],
+          'field_text_social' => $feed['message'],
+          'field_type' => 0,        
+        );       
+        
+        if($nodos_mismo_id == FALSE) { // No eixste
+         drauta_social_create_a_node($parametres);          
+        } else { // Existe
+          foreach($nodos_mismo_id as $key => $value) {
+            drauta_social_update_a_node($parametres, $value);             
+          }          
+        }  
+      } 
+    }     
+ }
+  
+ /**
+ * Create nodes or updates nodes of Twitter.
+ */
+ function drauta_social_create_or_updates_nodes_twitter() {  
+   
+   $configuracion = drauta_social_parameters();
+   $feeds = drauta_social_get_feeds_twitter($configuracion);
+   
+   if(is_array($feeds)) {
+     foreach($feeds as $feed) {
+        $referencia_id = $feed->id_str;
+        $nodos_mismo_id = drauta_social_exists_node($referencia_id);
+        
+        $time = strtotime($feed->created_at);
+        $date = date('Y-m-d\TH:i:s', $time);
+        
+        $retweet_count = $feed->retweet_count;
+        $favorite_count = $feed->favorite_count;    
+        
+        $parametres = array(
+          'type' => 'social_content',
+          'title' => $referencia_id,
+          'field_comments_social' => 0,
+          'field_date_social' => $date,
+          'field_likes_social' => $favorite_count,
+          'field_referencia_social' => $referencia_id,
+          'field_share_social' =>  $retweet_count,
+          'field_text_social' => $feed->text,
+          'field_type' => 1,        
+        );  
+        
+        // var_dump($parametres);       
+       
+       if($nodos_mismo_id == FALSE) { // No eixste
+         drauta_social_create_a_node($parametres);
+        } else { // Existe
+          foreach($nodos_mismo_id as $key => $value) {
+            drauta_social_update_a_node($parametres, $value);  
+          }          
+        }   
+     }     
+   }       
+ }
+ 
+ /**
+  * Create nodes or update of instagram.
+ */
+  function drauta_social_create_or_updates_nodes_instagram() {  
+   
+   $configuracion = drauta_social_parameters();
+   $feeds = drauta_social_get_feeds_instagram($configuracion);
+   
+    
+   if(is_array($feeds)) {
+     $count = 0;
+     $lim = $configuracion['max_instagram_posts'];
+     
+     foreach($feeds as $feed) {
+	    
+	    if($count >= $lim) {
+	        break;
+        }
+        
+        
+	    $time = strtotime($feed->created_time);
+		$date = date('Y-m-d\TH:i:s', $feed->created_time);
+		$text = $feed->caption->text;
+		$url_imagen = $feed->images->standard_resolution->url;
+	    $referencia_id = $feed->id;
+        $nodos_mismo_id = drauta_social_exists_node($referencia_id);       
+		
+        
+        $parametres = array(
+          'type' => 'social_content',
+          'title' => $referencia_id,
+          'field_comments_social' => 0,
+          'field_date_social' => $date,
+          'field_likes_social' => 0,
+          'field_referencia_social' => $referencia_id,
+          'field_share_social' =>  0,
+          'field_text_social' => $text,
+          'field_type' => 2,
+          'field_image_url' => $url_imagen    
+        );  
+        
+             
+		
+       if($nodos_mismo_id == FALSE) { // No eixste
+         drauta_social_create_a_node($parametres);
+        } 
+        
+       
+        $count++;
+     }     
+   }       
+ }
+ 
+ 
+ /**
+   * Verify if node exist. Return an array of Key => value.
+   */
+function drauta_social_exists_node($referencia_id) {
+  $query = \Drupal::entityQuery('node');
+  $query->condition('status', 1);
+  $query->condition('type', 'social_content');
+  $query->condition('field_referencia_social', $referencia_id);
+
+  $entity_ids = $query->execute();
+  if(count($entity_ids) > 0) {    
+    return $entity_ids;   
+  } else {
+    return FALSE;
+  }
+ }
+ 
+ /**
+  * Create node.
+  */
+ function drauta_social_create_a_node($parametres) {
+   $node = Node::create($parametres);
+   $node->save();
+ }
+ 
+ /**
+  * Update node.
+  */
+  function drauta_social_update_a_node($parametres, $nid) {
+    $node = Node::load($nid);
+    if($node != null) {
+      $node->set('field_likes_social', $parametres['likes']);
+      $node->set('field_share_social', $parametres['share']);
+      $node->set('field_comments_social', $parametres['comments']);
+      $node->save();     
+    }   
+  }
+  
+  /**
+   * Support connection instagram.
+   */
+  
+  function drauta_social_rudr_instagram_api_curl_connect( $api_url ) {
+	$connection_c = curl_init(); // initializing
+  	curl_setopt( $connection_c, CURLOPT_URL, $api_url ); // API URL to connect
+  	curl_setopt( $connection_c, CURLOPT_RETURNTRANSFER, 1 ); // return the result, do not print
+  	curl_setopt( $connection_c, CURLOPT_TIMEOUT, 20 );
+  	$json_return = curl_exec( $connection_c ); // connect and get json data
+  	curl_close( $connection_c ); // close connection
+  	return json_decode( $json_return ); // decode and return
+  }

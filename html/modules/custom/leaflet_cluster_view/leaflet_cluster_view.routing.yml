@@ -1,0 +1,40 @@
+leaflet_cluster_view.data_controller_test:
+  path: '/leaflet_cluster_view/test'
+  defaults:
+    _controller: '\Drupal\leaflet_cluster_view\Controller\DataController::getElementsAction'
+    _title: 'jsonData'
+  requirements:
+    _permission: 'access content'
+
+leaflet_cluster_view.data_controller_organizaciones:
+  path: '/leaflet_cluster_view/orgs'
+  defaults:
+    _controller: '\Drupal\leaflet_cluster_view\Controller\DataController::getElementsOrganitzacionsAction'
+    _title: 'jsonData'
+  requirements:
+    _permission: 'access content'
+ 
+leaflet_cluster_view.data_controller_proyectos:
+  path: '/leaflet_cluster_view/proj'
+  defaults:
+    _controller: '\Drupal\leaflet_cluster_view\Controller\DataController::getElementsProjectsAction'
+    _title: 'jsonData'
+  requirements:
+    _permission: 'access content'
+    
+leaflet_cluster_view.data_controller_events:
+  path: '/leaflet_cluster_view/events'
+  defaults:
+    _controller: '\Drupal\leaflet_cluster_view\Controller\DataController::getElementsEventsAction'
+    _title: 'jsonData'
+  requirements:
+    _permission: 'access content'
+       
+leaflet_cluster_view.data_controller_redirect:
+  path: '/leaflet_cluster_view/route/{name}'
+  defaults:
+    _controller: '\Drupal\leaflet_cluster_view\Controller\DataController::getRouteLinkAction'
+    _title: 'jsonData'
+  requirements:
+    _permission: 'access content'
+
