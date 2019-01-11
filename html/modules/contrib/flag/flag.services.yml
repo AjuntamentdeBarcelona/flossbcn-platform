@@ -17,10 +17,10 @@ services:
     arguments: ['@container.namespaces', '@cache.discovery', '@module_handler']
   flag:
     class: Drupal\flag\FlagService
-    arguments: ['@entity.query', '@current_user', '@entity_type.manager', '@session_manager']
+    arguments: ['@current_user', '@entity_type.manager', '@session_manager']
   flag.count:
     class: Drupal\flag\FlagCountManager
-    arguments: ['@database']
+    arguments: ['@database', '@datetime.time']
     tags:
       - { name: event_subscriber }
   flag.link_builder:

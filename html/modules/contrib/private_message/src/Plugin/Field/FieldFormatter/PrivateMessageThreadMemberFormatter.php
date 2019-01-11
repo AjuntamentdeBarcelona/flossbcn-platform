@@ -116,7 +116,15 @@ class PrivateMessageThreadMemberFormatter extends FormatterBase implements Conta
       $format = $this->t('Displays members using the %display_mode display mode of the user entity', ['%display_mode' => $this->getSetting('entity_display_mode')]);
     }
 
-    $summary[] = $format;
+    $summary['format'] = $format;
+
+    $members_prefix = $this->getSetting('members_prefix');
+    if (empty($members_prefix)) {
+      $summary['field_prefix'] = $this->t('The members list is shown without a prefix');
+    }
+    else {
+      $summary['field_prefix'] = $this->t('The members list is prefixed with the text: %members_prefix.', ['%members_prefix' => $members_prefix]);
+    }
 
     return $summary;
   }
@@ -128,6 +136,7 @@ class PrivateMessageThreadMemberFormatter extends FormatterBase implements Conta
     return [
       'display_type' => 'label',
       'entity_display_mode' => 'private_message_author',
+      'members_prefix' => t('You and'),
     ] + parent::defaultSettings();
   }
 
@@ -184,6 +193,12 @@ class PrivateMessageThreadMemberFormatter extends FormatterBase implements Conta
       $element['entity_display_mode']['#markup'] = '';
     }
 
+    $element['members_prefix'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Field prefix'),
+      '#default_value' => $this->getSetting('members_prefix'),
+    ];
+
     return $element;
   }
 
@@ -228,13 +243,19 @@ class PrivateMessageThreadMemberFormatter extends FormatterBase implements Conta
       }
     }
 
-    $separator = $this->getSetting('display_type') == 'label' ? ', ' : '';
-
     $element = [
       '#prefix' => '<div class="private-message-recipients">',
       '#suffix' => '</div>',
-      '#markup' => '<span>' . $this->t('You and') . ' </span>' . implode($separator, $users),
+      '#markup' => '',
     ];
+
+    $members_prefix = $this->getSetting('members_prefix');
+    if (strlen($members_prefix)) {
+      $element['#markup'] .= '<span>' . $members_prefix . ' </span>';
+    }
+
+    $separator = $this->getSetting('display_type') == 'label' ? ', ' : '';
+    $element['#markup'] .= implode($separator, $users);
 
     return $element;
   }

@@ -58,9 +58,9 @@ class FlagAddPageForm extends FormBase {
 
     $form['flag_entity_type'] = [
       '#type' => 'radios',
-      '#title' => t('Flag Type'),
+      '#title' => $this->t('Flag Type'),
       '#required' => TRUE,
-      '#description' => t('Type of item to reference. This cannot be changed once the flag is created.'),
+      '#description' => $this->t('Type of item to reference. This cannot be changed once the flag is created.'),
       '#default_value' => 'entity:node',
       '#options' => $this->flagTypeManager->getAllFlagTypes(),
     ];
@@ -71,7 +71,7 @@ class FlagAddPageForm extends FormBase {
 
     $form['actions']['submit'] = [
       '#type' => 'submit',
-      '#value' => t('Continue'),
+      '#value' => $this->t('Continue'),
     ];
 
     return $form;
@@ -82,7 +82,7 @@ class FlagAddPageForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $form_state->setRedirect('entity.flag.add_form', [
-      'entity_type' => $form_state->getValue('flag_entity_type')
+      'entity_type' => $form_state->getValue('flag_entity_type'),
     ]);
   }
 

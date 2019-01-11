@@ -38,7 +38,7 @@ class DeleteGroup {
   /**
    * Callback when the batch for group and content deletion is done.
    */
-  public function deleteGroupAndContentFinishedCallback($success, $results, $operations) {
+  public static function deleteGroupAndContentFinishedCallback($success, $results, $operations) {
     // The 'success' parameter means no fatal PHP errors were detected. All
     // other error management should be handled using 'results'.
     if ($success) {
@@ -47,7 +47,7 @@ class DeleteGroup {
         'One item deleted.', '@count items deleted.'
       );
       // Provide some feedback when its a success.
-      drupal_set_message(t("Your group and all of it's topic's, event's and post's have been deleted."));
+      drupal_set_message(t('Your group and all of its topics, events and posts have been deleted.'));
       // TODO: log to the database.
     }
     else {

@@ -131,15 +131,33 @@ function r4032login_form_system_site_information_settings_alter(&$form, FormStat
  */
 function r4032login_form_system_site_information_settings_validate($form, FormStateInterface $form_state) {
   $path_validator = \Drupal::pathValidator();
+
   if (!$form_state->isValueEmpty('r4032login_redirect_authenticated_users_to') && !$path_validator->isValid($form_state->getValue(('r4032login_redirect_authenticated_users_to')))) {
     $form_state->setErrorByName('r4032login_redirect_authenticated_users_to', t("The redirect authenticated users path '%path' is either invalid or you do not have access to it.", [
       '%path' => $form_state->getValue('r4032login_redirect_authenticated_users_to'),
     ]));
   }
-  if (!$form_state->isValueEmpty('r4032login_user_login_path') && !$path_validator->isValid($form_state->getValue('r4032login_user_login_path'))) {
-    $form_state->setErrorByName('r4032login_user_login_path', t("The user login form path '%path' is either invalid or you do not have access to it.", [
-      '%path' => $form_state->getValue('r4032login_user_login_path'),
-    ]));
+
+  if (!$form_state->isValueEmpty('r4032login_user_login_path')) {
+    $r4032loginUserLoginPath = $form_state->getValue('r4032login_user_login_path');
+
+    // If Rename Admin Paths is present, replace its path by "user"
+    // for validation so we can validate the path as usual.
+    $moduleHandler = \Drupal::service('module_handler');
+    if ($moduleHandler->moduleExists('rename_admin_paths')
+      && ($configFactory = \Drupal::service('config.factory'))
+      && ($renameAdminPathsSettings = $configFactory->get('rename_admin_paths.settings')->getRawData())
+      && !empty($renameAdminPathsSettings['user_path'])
+      && !empty($renameAdminPathsSettings['user_path_value'])
+    ) {
+      $r4032loginUserLoginPath = str_replace($renameAdminPathsSettings['user_path_value'], 'user', $r4032loginUserLoginPath);
+    }
+
+    if (!$path_validator->isValid($r4032loginUserLoginPath)) {
+      $form_state->setErrorByName('r4032login_user_login_path', t("The user login form path '%path' is either invalid or you do not have access to it.", [
+        '%path' => $form_state->getValue('r4032login_user_login_path'),
+      ]));
+    }
   }
 }
 

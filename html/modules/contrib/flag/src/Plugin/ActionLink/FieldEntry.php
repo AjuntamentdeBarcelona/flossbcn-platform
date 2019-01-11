@@ -28,6 +28,7 @@ class FieldEntry extends FormEntryTypeBase {
           'flag' => $flag->id(),
           'entity_id' => $entity->id(),
         ]);
+
       default:
         return Url::fromRoute('flag.field_entry.edit', [
           'flag' => $flag->id(),

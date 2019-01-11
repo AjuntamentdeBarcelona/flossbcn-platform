@@ -2,8 +2,9 @@
 
 namespace Drupal\votingapi;
 
+use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityForm;
-use Drupal\Core\Entity\EntityManagerInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -16,18 +17,24 @@ class VoteTypeForm extends EntityForm {
   /**
    * The entity manager.
    *
-   * @var \Drupal\Core\Entity\EntityManagerInterface
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
-  protected $entityManager;
+  protected $entityTypeManager;
+
+  /**
+   * @var EntityFieldManagerInterface
+   */
+  protected $entityFieldManager;
 
   /**
    * Constructs the VoteTypeForm object.
    *
-   * @param \Drupal\Core\Entity\EntityManagerInterface $entity_manager
-   *   The entity manager
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_manager
+   *   The entity manager.
    */
-  public function __construct(EntityManagerInterface $entity_manager) {
-    $this->entityManager = $entity_manager;
+  public function __construct(EntityTypeManagerInterface $entity_manager, EntityFieldManagerInterface $entity_field_manager) {
+    $this->entityTypeManager = $entity_manager;
+    $this->entityFieldManager = $entity_field_manager;
   }
 
   /**
@@ -35,7 +42,8 @@ class VoteTypeForm extends EntityForm {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('entity.manager')
+      $container->get('entity_type.manager'),
+      $container->get('entity_field.manager')
     );
   }
 
@@ -140,7 +148,8 @@ class VoteTypeForm extends EntityForm {
       $this->logger('vote')->notice('Added vote type %name.', $context);
     }
 
-    $this->entityManager->clearCachedFieldDefinitions();
+    $this->entityFieldManager->clearCachedFieldDefinitions();
     $form_state->setRedirectUrl($type->toUrl('collection'));
   }
+
 }

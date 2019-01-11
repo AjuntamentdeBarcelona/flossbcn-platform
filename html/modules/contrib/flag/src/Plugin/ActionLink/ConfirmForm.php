@@ -27,6 +27,7 @@ class ConfirmForm extends FormEntryTypeBase {
           'flag' => $flag->id(),
           'entity_id' => $entity->id(),
         ]);
+
       default:
         return Url::fromRoute('flag.confirm_unflag', [
           'flag' => $flag->id(),

@@ -3,7 +3,6 @@
 namespace Drupal\flag;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\flag\FlagServiceInterface;
 
 /**
  * Provides a lazy builder for flag links.

@@ -85,14 +85,6 @@ flag.flag.*:
         type: string
         label: 'Extra permission option'
 
-flag.flag_type.plugin.entity:node:
-  type: "flag.flag_type.plugin.entity:*"
-  label: 'Flag type for all nodes'
-  mapping:
-    i18n:
-      type: string
-      label: 'i18n'
-
 flag.flag_type.plugin.entity:user:
   type: "flag.flag_type.plugin.entity:*"
   label: 'Flag type for user entities'

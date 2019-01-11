@@ -20,7 +20,7 @@ use Drupal\Core\Plugin\DefaultPluginManager;
 class VoteResultFunctionManager extends DefaultPluginManager {
 
   /**
-   * Constructs a new ImageEffectManager.
+   * Constructs a new VoteResultFunctionManager.
    *
    * @param \Traversable $namespaces
    *   An object that implements \Traversable which contains the root paths
@@ -70,7 +70,6 @@ class VoteResultFunctionManager extends DefaultPluginManager {
    * assumed responsibility for the full voting cycle: the votingapi_set_vote()
    * function recalculates automatically.
    *
-   *
    * @param string $entity_type_id
    *   A string identifying the type of content being rated. Node, comment,
    *   aggregator item, etc.
@@ -91,7 +90,7 @@ class VoteResultFunctionManager extends DefaultPluginManager {
       ->condition('type', $vote_type)
       ->sort('type')
       ->execute();
-    $vote_storage = \Drupal::entityManager()->getStorage('vote');
+    $vote_storage = \Drupal::entityTypeManager()->getStorage('vote');
     $votes = [];
     $vote_type = '';
     if (!empty($vote_ids)) {
@@ -108,7 +107,7 @@ class VoteResultFunctionManager extends DefaultPluginManager {
         $votes[] = $vote;
       }
 
-      // Still one last set to process
+      // Still one last set to process.
       $this->performAndStore($votes);
     }
   }
@@ -138,4 +137,5 @@ class VoteResultFunctionManager extends DefaultPluginManager {
       ])->execute();
     }
   }
+
 }

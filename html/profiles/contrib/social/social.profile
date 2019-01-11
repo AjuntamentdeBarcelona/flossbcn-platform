@@ -17,7 +17,7 @@ use Drupal\search_api\Entity\Index;
 function social_install_tasks(&$install_state) {
   $tasks = [
     'social_install_profile_modules' => [
-      'display_name' => t('Install modules'),
+      'display_name' => t('Install Open Social modules'),
       'type' => 'batch',
     ],
     'social_final_site_setup' => [
@@ -129,7 +129,7 @@ function social_form_install_configure_form_alter(&$form, FormStateInterface $fo
   // Add 'Social' fieldset and options.
   $form['social'] = [
     '#type' => 'fieldgroup',
-    '#title' => t('Optional configuration'),
+    '#title' => t('Open Social optional configuration'),
     '#description' => t('All the required modules and configuration will be automatically installed and imported. You can optionally select additional features or generated demo content.'),
     '#weight' => 50,
   ];
@@ -210,43 +210,6 @@ function social_install_profile_modules(array &$install_state) {
     'social_like' => 'social_like',
     'social_post_photo' => 'social_post_photo',
     'social_swiftmail' => 'social_swiftmail',
-
-    // OTHER CONTRIB.
-    'field_group' => 'field_group',
-    'address' => 'address',
-    'flag' => 'flag',
-    'geolocation' => 'geolocation',
-    'group' => 'group',
-    'mailsystem' => 'mailsystem',
-    'swiftmailer' => 'swiftmailer',
-    'crop' => 'crop',
-    'image_effects' => 'image_effects',
-    'image_widget_crop' => 'image_widget_crop',
-    'message' => 'message',
-
-    // MORE CONTRIB.
-    'field_ui' => 'field_ui',
-    'syslog' => 'syslog',
-    'dblog' => 'dblog',
-    'views_ui' => 'views_ui',
-    'addtoany' => 'addtoany',
-    'pathauto' => 'pathauto',
-    'twig_tweak' => 'twig_tweak',
-    'ctools' => 'ctools',
-    'eu_cookie_compliance' => 'eu_cookie_compliance',
-    'menu_item_role_access' => 'menu_item_role_access',
-    'content_translation' => 'content_translation',
-    'faqfield' => 'faqfield',
-    'entity_reference_revisions' => 'entity_reference_revisions',
-
-    // DRAUTA.
-    'change_title_label' => 'change_title_label',
-    'drauta_alters' => 'drauta_alters',
-    'drauta_custom_contentblock' => 'drauta_custom_contentblock',
-    'drauta_social' => 'drauta_social',
-    'extension_flags' => 'extension_flags',
-    'leaflet_cluster_view' => 'leaflet_cluster_view',
-    'widget_openlayer' => 'widget_openlayer',
   ];
   $social_modules = $modules;
   // Always install required modules first. Respect the dependencies between
@@ -286,7 +249,7 @@ function social_install_profile_modules(array &$install_state) {
 
   $batch = [
     'operations' => $operations,
-    'title' => t('Install modules'),
+    'title' => t('Install Open Social modules'),
     'error_message' => t('The installation has encountered an error.'),
   ];
   return $batch;
@@ -384,13 +347,12 @@ function social_theme_setup(array &$install_state) {
   $modules = ['color'];
   \Drupal::service('module_installer')->install($modules);
 
-  // DRAUTA.
-  $themes = ['social_custom'];
+  $themes = ['socialblue'];
   \Drupal::service('theme_handler')->install($themes);
 
   \Drupal::configFactory()
     ->getEditable('system.theme')
-    ->set('default', 'social_custom')
+    ->set('default', 'socialblue')
     ->save();
 
   // Ensure that the install profile's theme is used.

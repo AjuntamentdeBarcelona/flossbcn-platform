@@ -89,7 +89,7 @@ class LinkTypeAjaxTest extends FlagTestBase {
      *
      * div[contains(concat(' ',normalize-space(@class),' '),' flag ')]
      */
-    $links = $this->xpath('//div[contains(concat(" ",normalize-space(@class)," ")," flag ")]/a[normalize-space()=:label]', array(':label' => $this->flag->getShortText('flag')));
+    $links = $this->xpath('//div[contains(concat(" ",normalize-space(@class)," ")," flag ")]/a[normalize-space()=:label]', [':label' => $this->flag->getShortText('flag')]);
     // Use the same logic as clickLink() to get an AJAX response.
     $link_target = $this->getAbsoluteUrl($links[0]['href']);
     $flag_response = $this->drupalGetAjax($link_target);

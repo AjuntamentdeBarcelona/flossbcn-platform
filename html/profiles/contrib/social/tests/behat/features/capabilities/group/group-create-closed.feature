@@ -156,7 +156,7 @@ Feature: Create Closed Group
     And I should see the button "Delete"
     And I press "Delete"
     And I wait for AJAX to finish
-    Then I should see "Your group and all of it's topic's, event's and post's have been deleted."
+    Then I should see "Your group and all of its topics, events and posts have been deleted."
     When I am on "user"
     And I click "Groups"
     Then I should not see "Test closed group"
@@ -190,7 +190,6 @@ Feature: Create Closed Group
     And I click the element with css selector "#hero .dropdown-toggle"
     And I should see the link "Leave group"
     And I click "Leave group"
-    And I should see "Test closed group 2" in the "Hero block"
     And I should see "This action cannot be undone."
     And I should see the button "Cancel"
     And I should see the button "Leave group"

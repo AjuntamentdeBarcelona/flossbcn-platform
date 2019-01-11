@@ -6,7 +6,6 @@ use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\flag\ActionLink\ActionLinkPluginManager;
-use Drupal\flag\Entity\Flag;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -28,7 +27,7 @@ abstract class FlagFormBase extends EntityForm {
   /**
    * The entity type manager.
    *
-   * @var \Drupal\Core\Entity\EntityTypeBundleInfoInterface;
+   * @var \Drupal\Core\Entity\EntityTypeBundleInfoInterface
    */
   protected $bundleInfoService;
 
@@ -91,10 +90,10 @@ abstract class FlagFormBase extends EntityForm {
       '#type' => 'radios',
       '#title' => $this->t('Scope'),
       '#default_value' => $flag->isGlobal() ? 1 : 0,
-      '#options' => array(
-        0 => t('Personal'),
-        1 => t('Global'),
-      ),
+      '#options' => [
+        0 => $this->t('Personal'),
+        1 => $this->t('Global'),
+      ],
       '#weight' => -1,
     ];
 
@@ -161,7 +160,6 @@ abstract class FlagFormBase extends EntityForm {
     ];
 
     // Switch plugin type in case a different is chosen.
-
     $flag_type_plugin = $flag->getFlagTypePlugin();
     $flag_type_def = $flag_type_plugin->getPluginDefinition();
 
@@ -193,7 +191,7 @@ abstract class FlagFormBase extends EntityForm {
       '#type' => 'details',
       '#open' => TRUE,
       '#title' => $this->t('Display options'),
-      '#description' => $this->t('Flags are usually controlled through links that allow users to toggle their behavior. You can choose how users interact with flags by changing options here. It is legitimate to have none of the following checkboxes ticked, if, for some reason, you wish <a href="@placement-url">to place the the links on the page yourself</a>.', array('@placement-url' => 'http://drupal.org/node/295383')),
+      '#description' => $this->t('Flags are usually controlled through links that allow users to toggle their behavior. You can choose how users interact with flags by changing options here. It is legitimate to have none of the following checkboxes ticked, if, for some reason, you wish <a href="@placement-url">to place the the links on the page yourself</a>.', ['@placement-url' => 'http://drupal.org/node/295383']),
       '#tree' => FALSE,
       '#weight' => 20,
       '#prefix' => '<div id="link-type-settings-wrapper">',
@@ -306,11 +304,11 @@ abstract class FlagFormBase extends EntityForm {
     $status = $flag->save();
     $url = $flag->urlInfo();
     if ($status == SAVED_UPDATED) {
-      drupal_set_message(t('Flag %label has been updated.', ['%label' => $flag->label()]));
+      drupal_set_message($this->t('Flag %label has been updated.', ['%label' => $flag->label()]));
       $this->logger('flag')->notice('Flag %label has been updated.', ['%label' => $flag->label(), 'link' => $this->l($this->t('Edit'), $url)]);
     }
     else {
-      drupal_set_message(t('Flag %label has been added.', ['%label' => $flag->label()]));
+      drupal_set_message($this->t('Flag %label has been added.', ['%label' => $flag->label()]));
       $this->logger('flag')->notice('Flag %label has been added.', ['%label' => $flag->label(), 'link' => $this->l($this->t('Edit'), $url)]);
     }
 

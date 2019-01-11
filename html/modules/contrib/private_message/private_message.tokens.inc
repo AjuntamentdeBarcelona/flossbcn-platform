@@ -151,7 +151,7 @@ function private_message_tokens($type, $tokens, array $data, array $options, Bub
           break;
 
         case 'url':
-          $replacements[$original] = Url::fromRoute('private_message.private_message_page', ['private_message_thread' => $private_message_thread->id()], $url_options)->toString();
+          $replacements[$original] = Url::fromRoute('entity.private_message_thread.canonical', ['private_message_thread' => $private_message_thread->id()], $url_options)->toString();
           break;
 
         case 'updated':

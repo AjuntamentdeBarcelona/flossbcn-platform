@@ -211,5 +211,4 @@ class LinkOutputLocationTest extends FlagTestBase {
   // TODO: add assertions:
   // assertEntityLink
   // assertNoEntityLink
-
 }

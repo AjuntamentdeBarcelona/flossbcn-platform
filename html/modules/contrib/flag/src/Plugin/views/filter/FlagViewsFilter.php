@@ -17,8 +17,8 @@ class FlagViewsFilter extends BooleanOperator {
    */
   public function defineOptions() {
     $options = parent::defineOptions();
-    $options['value'] = array('default' => 1);
-    $options['relationship'] = array('default' => 'flag_relationship');
+    $options['value'] = ['default' => 1];
+    $options['relationship'] = ['default' => 'flag_relationship'];
 
     return $options;
   }
@@ -38,7 +38,7 @@ class FlagViewsFilter extends BooleanOperator {
       // 'All' => t('All'),
     ];
     $form['value']['#default_value'] = empty($this->options['value']) ? FALSE : $this->options['value'];
-    $form['value']['#description'] = '<p>' . $this->t('This filter is only needed if the relationship used has the "Include only flagged content" option <strong>unchecked</strong>. Otherwise, this filter is useless, because all records are already limited to flagged content.') . '</p><p>' . $this->t('By choosing <em>Not flagged</em>, it is possible to create a list of content <a href="@unflagged-url">that is specifically not flagged</a>.', array('@unflagged-url' => 'http://drupal.org/node/299335')) . '</p>';
+    $form['value']['#description'] = '<p>' . $this->t('This filter is only needed if the relationship used has the "Include only flagged content" option <strong>unchecked</strong>. Otherwise, this filter is useless, because all records are already limited to flagged content.') . '</p><p>' . $this->t('By choosing <em>Not flagged</em>, it is possible to create a list of content <a href="@unflagged-url">that is specifically not flagged</a>.', ['@unflagged-url' => 'http://drupal.org/node/299335']) . '</p>';
 
     // Workaround for bug in Views: $no_operator class property has no effect.
     // TODO: remove when https://www.drupal.org/node/2869191 is fixed.

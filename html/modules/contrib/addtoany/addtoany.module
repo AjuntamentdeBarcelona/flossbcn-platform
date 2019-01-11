@@ -11,6 +11,7 @@ use Drupal\Core\Render\Markup;
 use Drupal\Core\Url;
 use Drupal\Component\Utility\UrlHelper;
 use Drupal\node\Entity\Node;
+use Drupal\addtoany\Form\AddToAnySettingsForm;
 
 /**
  * Implements hook_theme().
@@ -58,20 +59,25 @@ function addtoany_theme_suggestions_addtoany_standard(array $variables) {
  */
 function addtoany_entity_extra_field_info() {
   $extra = [];
-  $types = ['node', 'comment', 'media'];
+  $entityTypes = AddToAnySettingsForm::getContentEntities();
+  $config = Drupal::config('addtoany.settings');
 
   // Allow modules to alter the entity types.
-  \Drupal::moduleHandler()->alter('addtoany_entity_types', $types);
+  \Drupal::moduleHandler()->alter('addtoany_entity_types', $entityTypes);
 
-  foreach ($types as $type) {
-    $bundles = Drupal::service('entity_type.bundle.info')->getBundleInfo($type);
-    foreach ($bundles as $bundle => $bundle_data) {
-      $extra[$type][$bundle]['display']['addtoany'] = [
-        'label' => t('AddToAny'),
-        'description' => t('Share buttons by AddToAny'),
-        'weight' => 5,
-        'visible' => FALSE,
-      ];
+  foreach ($entityTypes as $type) {
+    $entityTypeId = $type->id();
+    $isAllowed = $config->get("entities.{$entityTypeId}");
+    if ($isAllowed) {
+      $bundles = Drupal::service('entity_type.bundle.info')->getBundleInfo($entityTypeId);
+      foreach ($bundles as $bundle => $bundle_data) {
+        $extra[$entityTypeId][$bundle]['display']['addtoany'] = [
+          'label' => t('AddToAny'),
+          'description' => t('Share buttons by AddToAny'),
+          'weight' => 5,
+          'visible' => FALSE,
+        ];
+      }
     }
   }
 
@@ -83,19 +89,23 @@ function addtoany_entity_extra_field_info() {
  */
 function addtoany_entity_view(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display, $view_mode) {
   if ($display->getComponent('addtoany')) {
-    $data = addtoany_create_entity_data($entity);
-    $build['addtoany'] = [
-      '#addtoany_html' => \Drupal::token()->replace($data['addtoany_html'], ['node' => $entity]),
-      '#link_url' => $data['link_url'],
-      '#link_title' => $data['link_title'],
-      '#button_setting' => $data['button_setting'],
-      '#button_image' => $data['button_image'],
-      '#universal_button_placement' => $data['universal_button_placement'],
-      '#buttons_size' => $data['buttons_size'],
-      '#entity_type' => $entity->getEntityType()->id(),
-      '#bundle' => $entity->bundle(),
-      '#theme' => 'addtoany_standard',
-    ];
+    $config = Drupal::config('addtoany.settings');
+    $isAllowed = $config->get("entities.{$entity->getEntityTypeId()}");
+    if ($isAllowed) {
+      $data = addtoany_create_entity_data($entity);
+      $build['addtoany'] = [
+        '#addtoany_html' => \Drupal::token()->replace($data['addtoany_html'], ['node' => $entity]),
+        '#link_url' => $data['link_url'],
+        '#link_title' => $data['link_title'],
+        '#button_setting' => $data['button_setting'],
+        '#button_image' => $data['button_image'],
+        '#universal_button_placement' => $data['universal_button_placement'],
+        '#buttons_size' => $data['buttons_size'],
+        '#entity_type' => $entity->getEntityType()->id(),
+        '#bundle' => $entity->bundle(),
+        '#theme' => 'addtoany_standard',
+      ];
+    }
   }
 }
 

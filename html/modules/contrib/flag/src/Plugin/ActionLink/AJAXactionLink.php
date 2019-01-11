@@ -2,8 +2,8 @@
 
 namespace Drupal\flag\Plugin\ActionLink;
 
-use Drupal\flag\FlagInterface;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\flag\FlagInterface;
 
 /**
  * Provides the AJAX link type.
@@ -21,9 +21,10 @@ class AJAXactionLink extends Reload {
 
   public function getAsFlagLink(FlagInterface $flag, EntityInterface $entity) {
     $build = parent::getAsFlagLink($flag, $entity);
-    $build['#attached']['library'][] = 'core/drupal.ajax';
+    $build['#attached']['library'][] = 'flag/flag.link_ajax';
     $build['#attributes']['class'][] = 'use-ajax';
     return $build;
+
   }
 
 }

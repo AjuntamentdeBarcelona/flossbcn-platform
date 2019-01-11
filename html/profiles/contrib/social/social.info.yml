@@ -1,8 +1,8 @@
 name: Social
 type: profile
-description: 'Install profile.'
+description: 'Open Social install profile.'
 core: '8.x'
-version: '8.x-3.0'
+version: '8.x-3.6'
 project: social
 
 dependencies:
@@ -17,4 +17,4 @@ themes:
   - socialblue
 features: true
 distribution:
-  name: Flossbcn
+  name: Open Social

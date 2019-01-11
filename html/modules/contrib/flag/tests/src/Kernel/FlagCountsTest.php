@@ -1,8 +1,8 @@
 <?php
+
 namespace Drupal\Tests\flag\Kernel;
 
 use Drupal\flag\Entity\Flag;
-use Drupal\Tests\flag\Kernel\FlagKernelTestBase;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
 use Drupal\user\Entity\Role;
@@ -200,7 +200,8 @@ class FlagCountsTest extends FlagKernelTestBase {
     $this->flagService->flag($this->flag, $this->node, $this->anonymousUser, $anon1_session_id);
     $this->flagService->flag($this->flag, $this->node, $this->anonymousUser, $anon2_session_id);
 
-    // For non-global flags anonymous users can uniquely identifed by session_id.
+    // For non-global flags anonymous users can uniquely identifed by
+    // session_id.
     $anon1_count = $this->flagCountService->getUserFlagFlaggingCount($this->flag, $this->anonymousUser, $anon1_session_id);
     $this->assertEqual($anon1_count, 1, "getUserFlagFlaggingCount() counts only the first user.");
     $anon2_count = $this->flagCountService->getUserFlagFlaggingCount($this->flag, $this->anonymousUser, $anon2_session_id);
@@ -210,7 +211,8 @@ class FlagCountsTest extends FlagKernelTestBase {
     $this->flag->setGlobal(TRUE);
     $this->flag->save();
 
-    // Despite being a global flag, queries about specific anonymous users can still be made.
+    // Despite being a global flag, queries about specific anonymous users can
+    // still be made.
     $rejected_count = $this->flagCountService->getUserFlagFlaggingCount($this->flag, $this->anonymousUser, $anon1_session_id);
     $this->assertEqual($rejected_count, 1, "getUserFlagFlaggingCount() ignores the session id.");
   }
