@@ -4,7 +4,6 @@ namespace Drupal\dropdown_language\Form;
 
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides a configuration form for global settings.
@@ -82,7 +81,7 @@ class DropdownLanguageSettings extends ConfigFormBase {
       '#title' => $this->t('Keep block visible if only one language is available'),
       '#default_value' => $config->get('always_show_block'),
       '#description' => $this->t('Placed blocks will not output anything if there is not other translation available.  User role access to translation is checked.'),
-   ];
+    ];
 
     return parent::buildForm($form, $form_state);
   }

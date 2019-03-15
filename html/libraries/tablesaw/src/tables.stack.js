@@ -1,9 +1,9 @@
 /*
-* tablesaw: A set of plugins for responsive tables
-* Stack: switches from column layout to rows with inline labels
-* Copyright (c) 2013 Filament Group, Inc.
-* MIT License
-*/
+ * tablesaw: A set of plugins for responsive tables
+ * Stack: switches from column layout to rows with inline labels
+ * Copyright (c) 2013 Filament Group, Inc.
+ * MIT License
+ */
 
 (function() {
 	var classes = {
@@ -47,6 +47,7 @@
 			})
 			.filter(function() {
 				return (
+					!$(this).is("[" + attrs.labelless + "]") &&
 					!$(this)
 						.closest("tr")
 						.is("[" + attrs.labelless + "]") &&
@@ -91,6 +92,7 @@
 				// Update if already exists.
 				var $label = $cell.find("." + classes.cellLabels);
 				if (!$label.length) {
+					$cell.prepend(document.createTextNode(" "));
 					$cell.prepend($newHeader);
 				} else {
 					// only if changed
@@ -103,7 +105,7 @@
 		this.$table.removeClass(classes.stackTable);
 		this.$table.find("." + classes.cellLabels).remove();
 		this.$table.find("." + classes.cellContentLabels).each(function() {
-			$(this).replaceWith(this.childNodes);
+			$(this).replaceWith($(this.childNodes));
 		});
 	};
 

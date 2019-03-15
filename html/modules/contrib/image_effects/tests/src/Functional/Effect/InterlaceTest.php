@@ -23,7 +23,7 @@ class InterlaceTest extends ImageEffectsTestBase {
   }
 
   /**
-   * Test effect on required toolkits.
+   * Interlace effect test.
    *
    * @param string $toolkit_id
    *   The id of the toolkit to set up.
@@ -34,16 +34,9 @@ class InterlaceTest extends ImageEffectsTestBase {
    *
    * @dataProvider providerToolkits
    */
-  public function testOnToolkits($toolkit_id, $toolkit_config, array $toolkit_settings) {
+  public function testInterlaceEffect($toolkit_id, $toolkit_config, array $toolkit_settings) {
     $this->changeToolkit($toolkit_id, $toolkit_config, $toolkit_settings);
-  }
 
-  /**
-   * Interlace effect test.
-   *
-   * @depends testOnToolkits
-   */
-  public function testInterlaceEffect() {
     $test_data = [
       // Test on the PNG test image.
       [

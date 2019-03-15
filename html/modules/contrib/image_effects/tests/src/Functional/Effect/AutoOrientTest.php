@@ -12,7 +12,15 @@ use Drupal\Tests\image_effects\Functional\ImageEffectsTestBase;
 class AutoOrientTest extends ImageEffectsTestBase {
 
   /**
-   * Test effect on required toolkits.
+   * {@inheritdoc}
+   */
+  public function setUp() {
+    static::$modules = array_merge(static::$modules, ['file_mdm', 'file_mdm_exif']);
+    parent::setUp();
+  }
+
+  /**
+   * Auto Orientation effect test.
    *
    * @param string $toolkit_id
    *   The id of the toolkit to set up.
@@ -23,16 +31,9 @@ class AutoOrientTest extends ImageEffectsTestBase {
    *
    * @dataProvider providerToolkits
    */
-  public function testOnToolkits($toolkit_id, $toolkit_config, array $toolkit_settings) {
+  public function testAutoOrientEffect($toolkit_id, $toolkit_config, array $toolkit_settings) {
     $this->changeToolkit($toolkit_id, $toolkit_config, $toolkit_settings);
-  }
 
-  /**
-   * Auto Orientation effect test.
-   *
-   * @depends testOnToolkits
-   */
-  public function testAutoOrientEffect() {
     // Add Auto Orient effect to the test image style.
     $effect = [
       'id' => 'image_effects_auto_orient',
@@ -113,9 +114,18 @@ class AutoOrientTest extends ImageEffectsTestBase {
   /**
    * Auto Orientation effect test, all EXIF orientation tags.
    *
-   * @depends testOnToolkits
+   * @param string $toolkit_id
+   *   The id of the toolkit to set up.
+   * @param string $toolkit_config
+   *   The config object of the toolkit to set up.
+   * @param array $toolkit_settings
+   *   The settings of the toolkit to set up.
+   *
+   * @dataProvider providerToolkits
    */
-  public function testAutoOrientAllTags() {
+  public function testAutoOrientAllTags($toolkit_id, $toolkit_config, array $toolkit_settings) {
+    $this->changeToolkit($toolkit_id, $toolkit_config, $toolkit_settings);
+
     // Add Auto Orient effect to the test image style.
     $effect = [
       'id' => 'image_effects_auto_orient',

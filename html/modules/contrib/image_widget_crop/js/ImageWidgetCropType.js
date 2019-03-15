@@ -156,6 +156,13 @@
     this.showDefaultCrop = true;
 
     /**
+     * Flag indicating whether to show the default crop.
+     *
+     * @type {Boolean}
+     */
+    this.isRequired = false;
+
+    /**
      * The soft limit of the crop.
      *
      * @type {{height: Number, width: Number, reached: {height: Boolean, width: Boolean}}}
@@ -274,7 +281,7 @@
    * The "cropmove" event handler for the Cropper plugin.
    */
   Drupal.ImageWidgetCropType.prototype.cropMove = function () {
-    this.updateSoftLimits();
+    this.built();
   };
 
   /**
@@ -375,6 +382,7 @@
 
     // Set the default options.
     this.options = $.extend({}, this.defaultOptions);
+    this.isRequired = this.$wrapper.data('drupalIwcRequired');
 
     // Extend this instance with data from the wrapper.
     var data = this.$wrapper.data();
@@ -460,7 +468,6 @@
       this.options.autoCrop = true;
     }
 
-    this.options.data.rotate = 0;
     this.options.data.scaleX = 1;
     this.options.data.scaleY = 1;
 

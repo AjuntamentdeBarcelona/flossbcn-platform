@@ -7,8 +7,10 @@
 
 use Drupal\Component\Utility\Html;
 use Drupal\Component\Utility\Unicode;
+use Drupal\Core\Config\ConfigValueException;
 use Drupal\image\ConfigurableImageEffectBase;
 use Drupal\image_effects\Component\ColorUtility;
+use Drupal\image\Entity\ImageStyle;
 
 /**
  * Implements hook_theme().
@@ -22,6 +24,10 @@ function image_effects_theme() {
         'border' => FALSE,
         'border_color' => '#000000',
       ],
+    ],
+    // Aspect switcher image effect - summary.
+    'image_effects_aspect_switcher' => [
+      'variables' => ['data' => NULL, 'effect' => []],
     ],
     // Background image effect - summary.
     'image_effects_background_summary' => [
@@ -63,12 +69,20 @@ function image_effects_theme() {
     'image_effects_resize_percentage_summary' => [
       'variables' => ['data' => NULL, 'effect' => []],
     ],
+    // Scale and Smart Crop image effect - summary.
+    'image_effects_scale_and_smart_crop_summary' => [
+      'variables' => ['data' => NULL, 'effect' => []],
+    ],
     // Set canvas image effect - summary.
     'image_effects_set_canvas_summary' => [
       'variables' => ['data' => NULL, 'effect' => []],
     ],
     // Set transparent color image effect - summary.
     'image_effects_set_transparent_color_summary' => [
+      'variables' => ['data' => NULL, 'effect' => []],
+    ],
+    // Smart Crop image effect - summary.
+    'image_effects_smart_crop_summary' => [
       'variables' => ['data' => NULL, 'effect' => []],
     ],
     // Render a preview of the Text Overlay in the image effect UI.
@@ -156,5 +170,57 @@ function image_effects_preprocess_image_effects_color_detail(&$variables) {
     }
     $variables['color_opacity'] = ColorUtility::rgbaToOpacity($variables['color']);
     $variables['color'] = Unicode::substr($variables['color'], 0, 7);
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_presave() for image_style entities.
+ *
+ * This hook checks if the image style that is being saved contains any aspect
+ * switcher effect that refers to the image style itself. If so, this is a
+ * circular reference and we should raise an exception.
+ */
+function image_effects_image_style_presave(ImageStyle $style) {
+  $effects = $style->getEffects();
+  foreach ($effects as $effect) {
+    $effect_data = $effect->getConfiguration()['data'];
+    switch ($effect->getPluginId()) {
+      case 'image_effects_aspect_switcher':
+        if ($style->id() === $effect_data['landscape_image_style']) {
+          throw new ConfigValueException("You can not select the {$style->label()} image style itself for the landscape style");
+        }
+        if ($style->id() === $effect_data['portrait_image_style']) {
+          throw new ConfigValueException("You can not select the {$style->label()} image style itself for the portrait style");
+        }
+        break;
+
+      default:
+        continue 2;
+
+    }
+  }
+}
+
+/**
+ * Implements hook_image_style_flush().
+ *
+ * This hook checks if the image style that is being flushed is used in any
+ * aspect switcher effect. If so, the style that contains the aspect switcher
+ * effect should be flushed as well.
+ */
+function image_effects_image_style_flush(ImageStyle $style) {
+  // Retrieve image styles that have an aspect switcher effect that contains
+  // the style being flushed.
+  $query = \Drupal::entityQuery('image_style');
+  $query->condition('effects.*.id', 'image_effects_aspect_switcher');
+  $group = $query->orConditionGroup()
+    ->condition('effects.*.data.landscape_image_style', $style->id())
+    ->condition('effects.*.data.portrait_image_style', $style->id());
+  $image_style_ids = $query->condition($group)->execute();
+
+  // Flush them all.
+  foreach ($image_style_ids as $image_style_id) {
+    $image_style = ImageStyle::load($image_style_id);
+    $image_style->flush();
   }
 }

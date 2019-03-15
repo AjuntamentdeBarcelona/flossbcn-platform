@@ -2,6 +2,8 @@
 
 namespace Drupal\Tests\search_api\Kernel\ConfigEntity;
 
+use Drupal\Core\KeyValueStore\KeyValueExpirableFactoryInterface;
+use Drupal\Core\KeyValueStore\KeyValueStoreExpirableInterface;
 use Drupal\field\Tests\EntityReference\EntityReferenceTestTrait;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\field\Entity\FieldConfig;
@@ -51,6 +53,7 @@ class DependencyRemovalTest extends KernelTestBase {
   public function setUp() {
     parent::setUp();
 
+    $this->installEntitySchema('user');
     $this->installEntitySchema('search_api_task');
     $this->installConfig('search_api');
 
@@ -304,8 +307,8 @@ class DependencyRemovalTest extends KernelTestBase {
     // store (the index will purge any unsaved configuration of it upon
     // deletion, which uses a "user-shared temp store", which in turn uses a
     // key/value store).
-    $mock = $this->getMock('Drupal\Core\KeyValueStore\KeyValueStoreExpirableInterface');
-    $mock_factory = $this->getMock('Drupal\Core\KeyValueStore\KeyValueExpirableFactoryInterface');
+    $mock = $this->createMock(KeyValueStoreExpirableInterface::class);
+    $mock_factory = $this->createMock(KeyValueExpirableFactoryInterface::class);
     $mock_factory->method('get')->willReturn($mock);
     $this->container->set('keyvalue.expirable', $mock_factory);
 

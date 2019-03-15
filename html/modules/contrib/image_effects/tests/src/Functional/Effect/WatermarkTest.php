@@ -12,7 +12,7 @@ use Drupal\Tests\image_effects\Functional\ImageEffectsTestBase;
 class WatermarkTest extends ImageEffectsTestBase {
 
   /**
-   * Test effect on required toolkits.
+   * Watermark effect test.
    *
    * @param string $toolkit_id
    *   The id of the toolkit to set up.
@@ -23,16 +23,9 @@ class WatermarkTest extends ImageEffectsTestBase {
    *
    * @dataProvider providerToolkits
    */
-  public function testOnToolkits($toolkit_id, $toolkit_config, array $toolkit_settings) {
+  public function testWatermarkEffect($toolkit_id, $toolkit_config, array $toolkit_settings) {
     $this->changeToolkit($toolkit_id, $toolkit_config, $toolkit_settings);
-  }
 
-  /**
-   * Watermark effect test.
-   *
-   * @depends testOnToolkits
-   */
-  public function testWatermarkEffect() {
     // 1. Basic test.
     $original_uri = $this->getTestImageCopyUri('/files/image-1.png', 'simpletest');
     $derivative_uri = $this->testImageStyle->buildUri($original_uri);

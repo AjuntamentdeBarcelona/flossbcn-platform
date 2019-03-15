@@ -2,7 +2,6 @@
 
 namespace Drupal\search_api\Plugin\search_api\processor\Property;
 
-use Drupal\Component\Utility\Html;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\search_api\IndexInterface;
@@ -70,7 +69,7 @@ class AggregatedFieldProperty extends ConfigurablePropertyBase {
         continue;
       }
       $label = $datasource_labels[$datasource_id] . $property->getLabel();
-      $field_options[$combined_id] = Html::escape($label);
+      $field_options[$combined_id] = Utility::escapeHtml($label);
       if ($property instanceof ConfigurablePropertyInterface) {
         $description = $property->getFieldDescription($field);
       }
@@ -89,6 +88,21 @@ class AggregatedFieldProperty extends ConfigurablePropertyBase {
     $selected = array_flip($configuration['fields']);
     $form['fields']['#options'] = array_intersect_key($field_options, $selected);
     $form['fields']['#options'] += array_diff_key($field_options, $selected);
+
+    // Make sure we do not remove nested fields (which can be added via config
+    // but won't be present in the UI).
+    $missing_properties = array_diff($configuration['fields'], array_keys($properties));
+    if ($missing_properties) {
+      foreach ($missing_properties as $combined_id) {
+        list(, $property_path) = Utility::splitCombinedId($combined_id);
+        if (strpos($property_path, ':')) {
+          $form['fields'][$combined_id] = [
+            '#type' => 'value',
+            '#value' => $combined_id,
+          ];
+        }
+      }
+    }
 
     return $form;
   }

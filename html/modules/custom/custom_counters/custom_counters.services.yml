@@ -1,0 +1,5 @@
+services:
+  custom_counters.basetwig:
+    class: Drupal\custom_counters\CustomTwigExtensions
+    tags:
+      - { name: twig.extension }

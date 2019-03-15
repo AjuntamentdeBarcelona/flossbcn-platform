@@ -12,7 +12,7 @@ use Drupal\Tests\image_effects\Functional\ImageEffectsTestBase;
 class StripMetadataTest extends ImageEffectsTestBase {
 
   /**
-   * Test effect on required toolkits.
+   * Strip metadata effect test.
    *
    * @param string $toolkit_id
    *   The id of the toolkit to set up.
@@ -23,16 +23,9 @@ class StripMetadataTest extends ImageEffectsTestBase {
    *
    * @dataProvider providerToolkits
    */
-  public function testOnToolkits($toolkit_id, $toolkit_config, array $toolkit_settings) {
+  public function testStripMetadataEffect($toolkit_id, $toolkit_config, array $toolkit_settings) {
     $this->changeToolkit($toolkit_id, $toolkit_config, $toolkit_settings);
-  }
 
-  /**
-   * Strip metadata effect test.
-   *
-   * @depends testOnToolkits
-   */
-  public function testStripMetadataEffect() {
     // Add Strip metadata effect to the test image style.
     $effect = [
       'id' => 'image_effects_strip_metadata',

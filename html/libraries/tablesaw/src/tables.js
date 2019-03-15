@@ -1,11 +1,12 @@
 /*
-* tablesaw: A set of plugins for responsive tables
-* Stack and Column Toggle tables
-* Copyright (c) 2013 Filament Group, Inc.
-* MIT License
-*/
+ * tablesaw: A set of plugins for responsive tables
+ * Stack and Column Toggle tables
+ * Copyright (c) 2013 Filament Group, Inc.
+ * MIT License
+ */
 
-var domContentLoadedTriggered = false;
+// Account for Tablesaw being loaded either before or after the DOMContentLoaded event is fired.
+var domContentLoadedTriggered = /complete|loaded/.test(document.readyState);
 document.addEventListener("DOMContentLoaded", function() {
 	domContentLoadedTriggered = true;
 });
@@ -33,6 +34,9 @@ var Tablesaw = {
 		Tablesaw.$(element || document).trigger("enhance.tablesaw");
 	},
 	init: function(element) {
+		// Account for Tablesaw being loaded either before or after the DOMContentLoaded event is fired.
+		domContentLoadedTriggered =
+			domContentLoadedTriggered || /complete|loaded/.test(document.readyState);
 		if (!domContentLoadedTriggered) {
 			if ("addEventListener" in document) {
 				// Use raw DOMContentLoaded instead of shoestring (may have issues in Android 2.3, exhibited by stack table)
@@ -283,7 +287,6 @@ if (Tablesaw.mustard) {
 
 	Table.prototype._findPrimaryHeadersForCell = function(cell) {
 		var $headerRow = this._getPrimaryHeaderRow();
-		var $headers = this._getPrimaryHeaderCells($headerRow);
 		var headerRowIndex = this._getRowIndex($headerRow);
 		var results = [];
 
@@ -291,12 +294,14 @@ if (Tablesaw.mustard) {
 			if (rowNumber === headerRowIndex) {
 				continue;
 			}
+
 			for (var colNumber = 0; colNumber < this.headerMapping[rowNumber].length; colNumber++) {
 				if (this.headerMapping[rowNumber][colNumber] === cell) {
-					results.push($headers[colNumber]);
+					results.push(this.headerMapping[headerRowIndex][colNumber]);
 				}
 			}
 		}
+
 		return results;
 	};
 
@@ -475,7 +480,12 @@ if (Tablesaw.mustard) {
 	$doc.on("enhance.tablesaw", function(e) {
 		// Cut the mustard
 		if (Tablesaw.mustard) {
-			$(e.target)
+			var $target = $(e.target);
+			if ($target.parent().length) {
+				$target = $target.parent();
+			}
+
+			$target
 				.find(initSelector)
 				.filter(initFilterSelector)
 				[pluginName]();

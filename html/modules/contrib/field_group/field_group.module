@@ -477,7 +477,10 @@ function field_group_fields_nest(&$element, &$vars = NULL, $context = NULL) {
         // If this is a group, we have to use a reference to keep the reference
         // list intact (but if it is a field we don't mind).
         $group_references[$parent_name][$child_name] = &$element[$child_name];
-        $group_references[$parent_name]['#weight'] = $element['#fieldgroups'][$parent_name]->weight;
+        if(!empty($element['#fieldgroups'][$parent_name])) {
+	        $group_references[$parent_name]['#weight'] = $element['#fieldgroups'][$parent_name]->weight;
+        }
+        
       }
 
       // The child has been copied to its parent: remove it from the root element.

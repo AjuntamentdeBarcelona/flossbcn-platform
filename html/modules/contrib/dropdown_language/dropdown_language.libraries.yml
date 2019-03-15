@@ -3,8 +3,9 @@ dropdown-language-selector:
   js:
     js/dropdown_language_selector.js: {}
   dependencies:
-    - core/jquery
     - core/drupal
+    - core/jquery
+    - core/jquery.once
 
 dropdown-language-admin:
   version: VERSION

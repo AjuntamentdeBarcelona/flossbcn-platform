@@ -1,0 +1,113 @@
+<?php 
+	
+	/**
+	 * Function with config parameters. 
+	 */
+	function custom_recaptcha_config() {
+		$config = false;
+				
+		if($config) {			
+			if ($cache = \Drupal::cache()->get('custom_recaptcha')) {
+		      $my_data = $cache->data;
+		    }
+		    else {
+			    $config_factory = \Drupal::config('custom_recaptcha_configuration.settings');
+				$site_key = $config_factory->get('site_key');
+				$secret_key = $config_factory->get('secret_key');
+				$forms_id = $config_factory->get('forms_id');
+			
+				$array_forms = explode (',' ,$forms_id);
+				$array_forms_trimed = [];
+				
+				foreach($array_forms as $item) {
+					$array_forms_trimed[trim($item)] = trim($item);
+				}
+				
+				$my_data = [
+					'site_key' => $site_key, 
+					'secret_key' => $secret_key, 
+					'url_verify' => 'https://www.google.com/recaptcha/api/siteverify',
+					'score' => 0.5,
+					'forms' => $array_forms_trimed					
+				];			    
+				\Drupal::cache()->set('custom_recaptcha', $my_data);
+		    }
+			return $my_data;
+		} else {
+			return [
+				'site_key' => '6LcsWJQUAAAAAAPp2ik1h0N2HtHYVAVF9gBjRvKp', 
+				'secret_key' => '6LcsWJQUAAAAAAokjWBdKxYf2lZKj891NqoUCGuj', 
+				'url_verify' => 'https://www.google.com/recaptcha/api/siteverify',
+				'score' => 0.8,
+				'forms' => [
+					'user-login-form' => 'user-login-form',
+					'user-register-form' => 'user-register-form'
+				]
+			];
+		}
+		
+	}
+	
+	/**
+	 * Hook_preprocess_page
+	 */
+	function custom_recaptcha_preprocess_page(&$variables){
+		$config = custom_recaptcha_config();
+		$site_key = $config['site_key'];
+		$forms = $config['forms'];
+		$variables['#attached']['drupalSettings']['site_key'] = $site_key;
+		$variables['#attached']['drupalSettings']['forms'] = $forms;
+	}
+	
+	/**
+	 * Hook_form_alter
+	 */
+	function custom_recaptcha_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+		$config = custom_recaptcha_config();
+		$forms = $config['forms'];
+		$site_key = $config['site_key'];
+		$url = "https://www.google.com/recaptcha/api.js?render=$site_key";	
+
+		foreach ($forms as $key => $value) {			
+			if (strpos($form['#id'], $key) !== false) {
+			   // Add library.						
+				$form['#attached']['html_head'][] = [
+				  [
+				    '#type' => 'html_tag',
+				    '#tag' => 'script',
+				    '#attributes' => [
+				      'src' =>  $url,
+				      'async' => true
+				    ],
+				  ], 'custom-recaptcha-library', 
+				];				
+				$form['#attached']['library'][] = 'custom_recaptcha/custom-recaptcha-script';			
+				$form['#validate'][] = 'custom_recaptcha_validate_custom';	
+				break;
+			}			
+		}			
+	}
+	
+	/**
+	 * Custom validate. 
+	 */
+	function custom_recaptcha_validate_custom($form, \Drupal\Core\Form\FormStateInterface &$form_state) {
+		if ($_SERVER['REQUEST_METHOD'] === 'POST') {			
+			if(array_key_exists('recaptchaCustom', $_POST)) {
+				$config = custom_recaptcha_config();				
+				
+				$recaptcha_url = $config['url_verify'];
+			    $recaptcha_secret = $config['secret_key'];
+			    $recaptcha_response = $_POST['recaptchaCustom'];
+			
+			    $recaptcha = file_get_contents($recaptcha_url . '?secret=' . $recaptcha_secret . '&response=' . $recaptcha_response);
+			    $recaptcha = json_decode($recaptcha);
+				
+			    if ($recaptcha->score < $config['score']) {
+			        $form_state->setError($form, t('You are not a human.')); 
+			        drupal_set_message(t('You are not a human.'));
+			    } 
+			}		
+		}		
+	}
+	

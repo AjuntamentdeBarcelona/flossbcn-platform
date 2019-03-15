@@ -1,0 +1,5 @@
+name: 'Change language drauta'
+type: module
+description: 'Change language drauta'
+core: 8.x
+package: 'Drauta'

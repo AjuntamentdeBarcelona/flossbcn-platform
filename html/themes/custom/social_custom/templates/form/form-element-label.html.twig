@@ -30,7 +30,15 @@
 
 {%- if title is not empty -%}
   {{ element }}
-  <label{{ attributes.addClass(classes) }}>{{ title }}
+  
+  {% set valuetitle = '' %}
+  {% if title['#markup'] is not empty %}
+  	{% if title['#markup'].__toString() is empty %}
+  		{% set valuetitle = title['#markup'] %}
+  	{% endif %}
+  {% endif %} 
+  
+  <label{{ attributes.addClass(classes) }}>{% if valuetitle != '' %}{{valuetitle|t}}{% else %}{{ title }}{% endif %}
     {%- if description -%}
       <p class="help-block">{{ description }}</p>
     {%- endif -%}

@@ -1,17 +1,11 @@
 services:
-  access_check.search_api_tasks:
-    class: Drupal\search_api\Controller\ExecuteTasksAccessCheck
-    arguments: ['@search_api.task_manager']
-    tags:
-      - { name: access_check, applies_to: _search_api_tasks }
-
   logger.channel.search_api:
     parent: logger.channel_base
     arguments: ['search_api']
 
   paramconverter.search_api:
     class: Drupal\search_api\ParamConverter\SearchApiConverter
-    arguments: ['@entity.manager', '@user.shared_tempstore', '@current_user']
+    arguments: ['@entity.manager', '@tempstore.shared', '@current_user']
     tags:
       - { name: paramconverter, priority: 10 }
     lazy: true
@@ -68,6 +62,12 @@ services:
     class: Drupal\search_api\Utility\PluginHelper
     arguments: ['@plugin.manager.search_api.datasource', '@plugin.manager.search_api.processor', '@plugin.manager.search_api.tracker']
 
+  search_api.post_request_indexing:
+    class: Drupal\search_api\Utility\PostRequestIndexing
+    arguments: ['@entity_type.manager']
+    tags:
+      - { name: needs_destruction }
+
   search_api.query_helper:
     class: Drupal\search_api\Utility\QueryHelper
     arguments: ['@request_stack', '@module_handler', '@plugin.manager.search_api.parse_mode']
@@ -80,7 +80,7 @@ services:
 
   search_api.task_manager:
     class: Drupal\search_api\Task\TaskManager
-    arguments: ['@entity_type.manager', '@event_dispatcher', '@string_translation']
+    arguments: ['@entity_type.manager', '@event_dispatcher', '@string_translation', '@messenger']
 
   search_api.vbo_view_data_provider:
     class: Drupal\search_api\Contrib\ViewsBulkOperationsEventSubscriber

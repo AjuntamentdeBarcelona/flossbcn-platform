@@ -22,7 +22,7 @@ class ImagemagickArgumentsTest extends ImageEffectsTestBase {
   }
 
   /**
-   * Test effect on required toolkits.
+   * ImageMagick arguments effect test.
    *
    * @param string $toolkit_id
    *   The id of the toolkit to set up.
@@ -33,16 +33,9 @@ class ImagemagickArgumentsTest extends ImageEffectsTestBase {
    *
    * @dataProvider providerToolkits
    */
-  public function testOnToolkits($toolkit_id, $toolkit_config, array $toolkit_settings) {
+  public function testImagemagickArgumentsEffect($toolkit_id, $toolkit_config, array $toolkit_settings) {
     $this->changeToolkit($toolkit_id, $toolkit_config, $toolkit_settings);
-  }
 
-  /**
-   * ImageMagick arguments effect test.
-   *
-   * @depends testOnToolkits
-   */
-  public function testImagemagickArgumentsEffect() {
     $original_uri = $this->getTestImageCopyUri('/tests/images/portrait-painting.jpg', 'image_effects');
     $derivative_uri = $this->testImageStyle->buildUri($original_uri);
 

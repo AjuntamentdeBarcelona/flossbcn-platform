@@ -22,7 +22,7 @@ class BrightnessTest extends ImageEffectsTestBase {
   }
 
   /**
-   * Test effect on required toolkits.
+   * Brightness effect test.
    *
    * @param string $toolkit_id
    *   The id of the toolkit to set up.
@@ -33,16 +33,9 @@ class BrightnessTest extends ImageEffectsTestBase {
    *
    * @dataProvider providerToolkits
    */
-  public function testOnToolkits($toolkit_id, $toolkit_config, array $toolkit_settings) {
+  public function testBrightnessEffect($toolkit_id, $toolkit_config, array $toolkit_settings) {
     $this->changeToolkit($toolkit_id, $toolkit_config, $toolkit_settings);
-  }
 
-  /**
-   * Brightness effect test.
-   *
-   * @depends testOnToolkits
-   */
-  public function testBrightnessEffect() {
     // Test on the PNG test image.
     $original_uri = $this->getTestImageCopyUri('/files/image-test.png', 'simpletest');
 

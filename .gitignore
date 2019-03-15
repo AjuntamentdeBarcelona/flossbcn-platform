@@ -1,29 +1,7 @@
 /bin
 html/core
-# html/profiles/contrib
+html/profiles/contrib
 html/themes/contrib
 html/sites/default/files
-html/sites/default/*settings*
-
 vendor/
-public
 .idea
-files/
-sites/*/files
-sites/*/private
-sites/*/translations
-sites/*.dd
-*/.DS_Store
-
-# Ignore default text files
-/CHANGELOG.txt
-/COPYRIGHT.txt
-/INSTALL*.txt
-/LICENSE.txt
-/MAINTAINERS.txt
-/UPGRADE.txt
-/README.txt
-sites/README.txt
-sites/all/libraries/README.txt
-sites/all/modules/README.txt
-sites/all/themes/README.txt

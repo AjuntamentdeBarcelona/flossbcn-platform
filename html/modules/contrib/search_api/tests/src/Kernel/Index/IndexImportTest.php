@@ -43,7 +43,6 @@ class IndexImportTest extends KernelTestBase {
     parent::setUp();
 
     $this->installSchema('search_api', ['search_api_item']);
-    $this->installSchema('system', ['router']);
     $this->installSchema('user', ['users_data']);
     $this->installEntitySchema('entity_test_mulrev_changed');
     $this->installEntitySchema('search_api_task');
@@ -92,6 +91,9 @@ class IndexImportTest extends KernelTestBase {
       'stopwords' => $expected_stopwords,
     ];
     $sync->write('search_api.index.database_search_index', $import_config);
+
+    // The system.site key is required for import validation.
+    $sync->write('system.site', []);
 
     // Import the test configuration.
     $config_importer = $this->configImporter();

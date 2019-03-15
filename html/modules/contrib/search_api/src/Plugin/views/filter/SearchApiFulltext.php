@@ -2,7 +2,6 @@
 
 namespace Drupal\search_api\Plugin\views\filter;
 
-use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\search_api\Entity\Index;
@@ -123,11 +122,11 @@ class SearchApiFulltext extends FilterPluginBase {
   public function defineOptions() {
     $options = parent::defineOptions();
 
-    $options['parse_mode'] = ['default' => 'terms'];
     $options['operator']['default'] = 'and';
-
-    $options['min_length']['default'] = '';
-    $options['fields']['default'] = [];
+    $options['parse_mode'] = ['default' => 'terms'];
+    $options['min_length'] = ['default' => ''];
+    $options['fields'] = ['default' => []];
+    $options['expose']['contains']['placeholder'] = ['default' => ''];
 
     return $options;
   }
@@ -142,10 +141,14 @@ class SearchApiFulltext extends FilterPluginBase {
       '#type' => 'select',
       '#title' => $this->t('Parse mode'),
       '#description' => $this->t('Choose how the search keys will be parsed.'),
-      '#options' => $this->getParseModeManager()->getInstancesOptions(),
+      '#options' => [],
       '#default_value' => $this->options['parse_mode'],
     ];
     foreach ($this->getParseModeManager()->getInstances() as $key => $mode) {
+      if ($mode->isHidden()) {
+        continue;
+      }
+      $form['parse_mode']['#options'][$key] = $mode->label();
       if ($mode->getDescription()) {
         $states['visible'][':input[name="options[parse_mode]"]']['value'] = $key;
         $form["parse_mode_{$key}_description"] = [
@@ -191,6 +194,21 @@ class SearchApiFulltext extends FilterPluginBase {
   /**
    * {@inheritdoc}
    */
+  public function buildExposeForm(&$form, FormStateInterface $form_state) {
+    parent::buildExposeForm($form, $form_state);
+
+    $form['expose']['placeholder'] = [
+      '#type' => 'textfield',
+      '#default_value' => $this->options['expose']['placeholder'],
+      '#title' => $this->t('Placeholder'),
+      '#size' => 40,
+      '#description' => $this->t('Hint text that appears inside the field when empty.'),
+    ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   protected function valueForm(&$form, FormStateInterface $form_state) {
     parent::valueForm($form, $form_state);
 
@@ -200,6 +218,9 @@ class SearchApiFulltext extends FilterPluginBase {
       '#size' => 30,
       '#default_value' => $this->value,
     ];
+    if (!empty($this->options['expose']['placeholder'])) {
+      $form['value']['#attributes']['placeholder'] = $this->options['expose']['placeholder'];
+    }
   }
 
   /**
@@ -254,7 +275,7 @@ class SearchApiFulltext extends FilterPluginBase {
 
     $words = preg_split('/\s+/', $input);
     foreach ($words as $i => $word) {
-      if (Unicode::strlen($word) < $this->options['min_length']) {
+      if (mb_strlen($word) < $this->options['min_length']) {
         unset($words[$i]);
       }
     }
@@ -280,8 +301,16 @@ class SearchApiFulltext extends FilterPluginBase {
     $fields = $this->options['fields'];
     $fields = $fields ? $fields : array_keys($this->getFulltextFields());
     $query = $this->getQuery();
+    if ($query->shouldAbort()) {
+      return;
+    }
+
+    // Save any keywords that were already set.
+    $old = $query->getKeys();
+    $old_original = $query->getOriginalKeys();
 
     if ($this->options['parse_mode']) {
+      /** @var \Drupal\search_api\ParseMode\ParseModeInterface $parse_mode */
       $parse_mode = $this->getParseModeManager()
         ->createInstance($this->options['parse_mode']);
       $query->setParseMode($parse_mode);
@@ -289,8 +318,9 @@ class SearchApiFulltext extends FilterPluginBase {
 
     // If something already specifically set different fields, we silently fall
     // back to mere filtering.
-    $old = $query->getFulltextFields();
-    $use_conditions = $old && (array_diff($old, $fields) || array_diff($fields, $old));
+    $old_fields = $query->getFulltextFields();
+    $use_conditions = $old_fields
+      && (array_diff($old_fields, $fields) || array_diff($fields, $old_fields));
 
     if ($use_conditions) {
       $conditions = $query->createConditionGroup('OR');
@@ -309,8 +339,6 @@ class SearchApiFulltext extends FilterPluginBase {
     }
 
     $query->setFulltextFields($fields);
-    $old = $query->getKeys();
-    $old_original = $query->getOriginalKeys();
     $query->keys($this->value);
     if ($this->operator == 'not') {
       $keys = &$query->getKeys();
@@ -320,6 +348,7 @@ class SearchApiFulltext extends FilterPluginBase {
       else {
         // We can't know how negation is expressed in the server's syntax.
       }
+      unset($keys);
     }
 
     // If there were fulltext keys set, we take care to combine them in a
@@ -336,7 +365,8 @@ class SearchApiFulltext extends FilterPluginBase {
         else {
           // If the conjunction or negation settings aren't the same, we have to
           // nest both old and new keys array.
-          if (!empty($keys['#negation']) != !empty($old['#negation']) || $keys['#conjunction'] != $old['#conjunction']) {
+          if (empty($keys['#negation']) !== empty($old['#negation'])
+              || $keys['#conjunction'] !== $old['#conjunction']) {
             $keys = [
               '#conjunction' => 'AND',
               $old,
@@ -360,6 +390,7 @@ class SearchApiFulltext extends FilterPluginBase {
         $query->keys($combined_keys);
         $keys = $combined_keys;
       }
+      unset($keys);
     }
   }
 

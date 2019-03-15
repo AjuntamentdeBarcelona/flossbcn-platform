@@ -1,0 +1,4 @@
+name: 'Custom Recaptcha'
+description: 'Custom Recaptcha'
+type: module
+core: '8.x'

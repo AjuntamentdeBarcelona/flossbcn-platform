@@ -100,6 +100,20 @@
       {% endif %}
       
       
+      {% if content.field_repos|render %}
+      <div class="list-item list-item--withlabel group-fields">
+          <div class="list-item__label">{% trans %}Repos{% endtrans %}</div>
+          <div class="list-item__text">    
+          	{% set count = 0 %}
+          	{% for item in content.field_repos['#items'] %}
+          		<a style="display:block;" target="_blank" href="{{ content.field_repos[count] }}">{{ content.field_repos[count]  }}</a>
+		  		{% set count = count + 1 %}
+          	{% endfor %}		  	
+          </div>         
+      </div>      
+      {% endif %}  
+      
+      
       
       
       <div class="list-item list-item--withlabel group-fields">

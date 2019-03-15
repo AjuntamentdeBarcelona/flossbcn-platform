@@ -22,7 +22,7 @@ class ConvolutionTest extends ImageEffectsTestBase {
   }
 
   /**
-   * Test effect on required toolkits.
+   * Convolution effect test.
    *
    * @param string $toolkit_id
    *   The id of the toolkit to set up.
@@ -33,16 +33,9 @@ class ConvolutionTest extends ImageEffectsTestBase {
    *
    * @dataProvider providerToolkits
    */
-  public function testOnToolkits($toolkit_id, $toolkit_config, array $toolkit_settings) {
+  public function testConvolutionEffect($toolkit_id, $toolkit_config, array $toolkit_settings) {
     $this->changeToolkit($toolkit_id, $toolkit_config, $toolkit_settings);
-  }
 
-  /**
-   * Convolution effect test.
-   *
-   * @depends testOnToolkits
-   */
-  public function testConvolutionEffect() {
     $original_uri = $this->getTestImageCopyUri('/files/image-test.png', 'simpletest');
     $derivative_uri = 'public://test-images/image-test-derived.png';
 
@@ -83,8 +76,9 @@ class ConvolutionTest extends ImageEffectsTestBase {
       case 'imagemagick':
         // For the Imagemagick toolkit, check the command line argument has
         // been formatted properly.
-        $argument = $image->getToolkit()->getArguments()[$image->getToolkit()->findArgument('-morphology')];
-        $this->assertEqual("-morphology Convolve '3x3:1,1,1 1,1,1 1,1,1'", $argument);
+        $find = $image->getToolkit()->arguments()->find('/^./', NULL, ['image_toolkit_operation' => 'convolution']);
+        $arg = array_shift($find);
+        $this->assertEquals("-morphology Convolve '3x3:1,1,1 1,1,1 1,1,1'", $arg['argument']);
         break;
 
     }
