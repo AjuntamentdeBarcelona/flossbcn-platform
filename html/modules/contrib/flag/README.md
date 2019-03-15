@@ -62,7 +62,8 @@ Configuration of Flag module involves creating one or more flags.
 4. Click "Save Flag".
 5. Under Admin > People, configure the permissions for each Flag.
 
-Once you are finished creating flags, you may choose to use Views to leverage your new flags.
+Once you are finished creating flags, you may choose to use Views to leverage
+your new flags.
 
 Support
 -------

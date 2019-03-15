@@ -2,8 +2,6 @@
 
 namespace Drupal\Tests\flag\Functional;
 
-use Behat\Mink\Session;
-use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Url;
 use Drupal\flag\Entity\Flag;
 use Drupal\flag\Entity\Flagging;
@@ -52,13 +50,13 @@ class AnonymousFlagTest extends BrowserTestBase {
       'flagTypeConfig' => [],
       'linkTypeConfig' => [],
       'flag_short' => 'switch_this_on',
-      'unflag_short' => 'switch_this_off'
+      'unflag_short' => 'switch_this_off',
     ]);
     $this->flag->save();
 
     Role::load(Role::ANONYMOUS_ID)
-      ->grantPermission('flag '. $flag_id)
-      ->grantPermission('unflag '. $flag_id)
+      ->grantPermission('flag ' . $flag_id)
+      ->grantPermission('unflag ' . $flag_id)
       ->save();
   }
 

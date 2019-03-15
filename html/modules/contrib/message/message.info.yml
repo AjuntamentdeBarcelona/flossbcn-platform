@@ -7,8 +7,8 @@ configure: message.main_settings
 dependencies:
   - text
 
-# Information added by Drupal.org packaging script on 2017-10-19
-version: '8.x-1.0-rc1'
+# Information added by Drupal.org packaging script on 2018-04-23
+version: '8.x-1.0-rc2'
 core: '8.x'
 project: 'message'
-datestamp: 1508449453
+datestamp: 1524519795

@@ -3,7 +3,6 @@
 namespace Drupal\flag\ActionLink;
 
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Link;
 use Drupal\flag\FlagInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\Component\Plugin\ConfigurablePluginInterface;

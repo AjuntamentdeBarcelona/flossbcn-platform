@@ -8,13 +8,13 @@ use Drupal\search_api\IndexInterface;
 use Drupal\search_api\Item\ItemInterface;
 use Drupal\search_api\Plugin\views\field\SearchApiStandard;
 use Drupal\search_api\Plugin\views\query\SearchApiQuery;
+use Drupal\search_api\Plugin\views\ResultRow;
 use Drupal\search_api\Processor\ConfigurablePropertyInterface;
 use Drupal\search_api\Processor\ProcessorInterface;
 use Drupal\search_api\Processor\ProcessorProperty;
 use Drupal\search_api\Utility\Utility;
 use Drupal\user\Entity\User;
 use Drupal\views\Plugin\views\display\DisplayPluginBase;
-use Drupal\views\ResultRow;
 use Drupal\views\ViewExecutable;
 
 /**
@@ -57,8 +57,8 @@ class ViewsPropertyExtractionTest extends KernelTestBase {
     $datasource_id = 'entity:user';
 
     /** @var \Drupal\search_api\IndexInterface|\PHPUnit_Framework_MockObject_MockObject $index */
-    $index = $this->getMock(IndexInterface::class);
-    $property2 = $this->getMock(ConfigurablePropertyInterface::class);
+    $index = $this->createMock(IndexInterface::class);
+    $property2 = $this->createMock(ConfigurablePropertyInterface::class);
     $property2->method('getProcessorId')->willReturn('processor2');
     $property2->method('getDataType')->willReturn('string');
     $property2->method('defaultConfiguration')->willReturn([]);
@@ -92,11 +92,11 @@ class ViewsPropertyExtractionTest extends KernelTestBase {
       };
     };
     $value1 = $processor_property_value ?: 'Processor 1';
-    $processor1 = $this->getMock(ProcessorInterface::class);
+    $processor1 = $this->createMock(ProcessorInterface::class);
     $processor1->method('addFieldValues')
       ->willReturnCallback($generate_add_field_values($value1));
     $value2 = $processor_property_value ?: 'Processor 2';
-    $processor2 = $this->getMock(ProcessorInterface::class);
+    $processor2 = $this->createMock(ProcessorInterface::class);
     $processor2->method('addFieldValues')
       ->willReturnCallback($generate_add_field_values($value2));
     $index->method('getProcessor')->willReturnMap([
@@ -166,7 +166,6 @@ class ViewsPropertyExtractionTest extends KernelTestBase {
       '_relationship_objects' => [
         NULL => [$object],
       ],
-      'search_api_datasource' => $datasource_id,
     ]);
     if ($pre_set) {
       $row->$property_path = ['Pre-set'];

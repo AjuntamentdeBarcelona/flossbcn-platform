@@ -1,7 +1,7 @@
 <?php
+
 namespace Drupal\Tests\flag\Kernel;
 
-use Drupal\Core\Session\AccountInterface;
 use Drupal\flag\FlagInterface;
 use Drupal\flag\Tests\FlagCreateTrait;
 use Drupal\KernelTests\KernelTestBase;
@@ -70,4 +70,5 @@ abstract class FlagKernelTestBase extends KernelTestBase {
 
     return \Drupal::entityTypeManager()->getStorage('flagging')->loadMultiple($ids);
   }
+
 }

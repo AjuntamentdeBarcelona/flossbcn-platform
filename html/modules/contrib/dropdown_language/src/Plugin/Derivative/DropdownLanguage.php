@@ -9,7 +9,7 @@ use Drupal\language\ConfigurableLanguageManagerInterface;
 /**
  * Provides language switcher block plugin definitions for all languages.
  */
-class DropdownLanguage extends DeriverBase  {
+class DropdownLanguage extends DeriverBase {
 
   use StringTranslationTrait;
 

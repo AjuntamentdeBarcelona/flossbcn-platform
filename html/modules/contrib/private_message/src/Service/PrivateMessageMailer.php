@@ -87,14 +87,16 @@ class PrivateMessageMailer implements PrivateMessageMailerInterface {
       'private_message_thread' => $thread,
     ];
 
-    foreach ($members as $member) {
-      if ($member->id() != $this->currentUser->id()) {
-        $params['member'] = $member;
+    // Remove the current user from the members array.
+    $members = array_filter($members, function (AccountInterface $member) {
+      return $member->id() !== $this->currentUser->id();
+    });
 
-        // Should the message be sent?
-        if ($this->shouldSend($member)) {
-          $this->mailManager->mail('private_message', 'message_notification', $member->getEmail(), $member->getPreferredLangcode(), $params);
-        }
+    foreach ($members as $member) {
+      $params['member'] = $member;
+
+      if ($this->shouldSend($member)) {
+        $this->mailManager->mail('private_message', 'message_notification', $member->getEmail(), $member->getPreferredLangcode(), $params);
       }
     }
   }
@@ -111,11 +113,12 @@ class PrivateMessageMailer implements PrivateMessageMailerInterface {
    *   A boolean indicating whether or not the message should be sent.
    */
   private function shouldSend(AccountInterface $recipient) {
-    $send = (bool) $this->userData->get('private_message', $recipient->id(), 'email_notification');
+    // If the user data value is set, return it as a boolean.
+    if (($value = $this->userData->get('private_message', $recipient->id(), 'email_notification')) !== NULL) {
+      return (bool) $value;
+    }
 
-    return is_numeric($send)
-      ? $send
-      : ($this->config->get('enable_email_notifications') && $this->config->get('send_by_default'));
+    return $this->config->get('enable_email_notifications') && $this->config->get('send_by_default');
   }
 
 }

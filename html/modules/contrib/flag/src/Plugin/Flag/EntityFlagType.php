@@ -14,7 +14,6 @@ use Drupal\flag\FlagInterface;
 use Drupal\user\EntityOwnerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-
 /**
  * Provides a flag type for all entity types.
  *
@@ -73,7 +72,7 @@ class EntityFlagType extends FlagTypeBase {
     $options = parent::defaultConfiguration();
     $options += [
       // Output the flag in the entity links.
-      // This is empty for now and will get overriden for different
+      // This is empty for now and will get overridden for different
       // entities.
       // @see hook_entity_view().
       'show_in_links' => [],
@@ -191,7 +190,7 @@ class EntityFlagType extends FlagTypeBase {
    * @param string $name
    *   The name of the view mode.
    *
-   * @return boolean
+   * @return bool
    *   TRUE if the flag should appear in the entity links for the view mode.
    */
   public function showInLinks($name) {
@@ -313,7 +312,7 @@ class EntityFlagType extends FlagTypeBase {
   public function actionAccess($action, FlagInterface $flag, AccountInterface $account, EntityInterface $flaggable = NULL) {
     $access = parent::actionAccess($action, $flag, $account, $flaggable);
 
-    if (($flaggable instanceOf EntityOwnerInterface) && ($this->hasExtraPermission('owner'))) {
+    if (($flaggable instanceof EntityOwnerInterface) && ($this->hasExtraPermission('owner'))) {
       // Own items.
       $permission = $action . ' ' . $flag->id() . ' own items';
       $own_permission_access = AccessResult::allowedIfHasPermission($account, $permission)

@@ -1,3 +1,12 @@
+.addtoany-entity-checkbox ~ .description {
+  display: inline;
+}
+
+.addtoany-entity-checkbox ~ .description a {
+  margin: 0 3px;
+  white-space: nowrap;
+}
+
 .addtoany-round-icon {
   border-radius: 14%;
 }

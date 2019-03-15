@@ -25,7 +25,8 @@ use Drupal\user\UserInterface;
  *     "view_builder" = "Drupal\profile\ProfileViewBuilder",
  *     "views_data" = "Drupal\profile\ProfileViewsData",
  *     "access" = "Drupal\profile\ProfileAccessControlHandler",
- *     "permission_provider" = "Drupal\profile\ProfilePermissionProvider",
+ *     "permission_provider" = "Drupal\entity\UncacheableEntityPermissionProvider",
+ *     "query_access" = "Drupal\entity\QueryAccess\UncacheableQueryAccessHandler",
  *     "list_builder" = "Drupal\profile\ProfileListBuilder",
  *     "form" = {
  *       "default" = "Drupal\profile\Form\ProfileForm",
@@ -48,6 +49,8 @@ use Drupal\user\UserInterface;
  *     "id" = "profile_id",
  *     "revision" = "revision_id",
  *     "bundle" = "type",
+ *     "owner" = "uid",
+ *     "uid" = "uid",
  *     "uuid" = "uuid"
  *   },
  *  links = {
@@ -208,7 +211,7 @@ class Profile extends ContentEntityBase implements ProfileInterface {
 
     // If this profile is active and the owner has no current default profile
     // of this type, set this as the default.
-    if ($this->getOwner()) {
+    if ($this->getOwnerId() > 0) {
       if ($this->isActive() && !$this->isDefault()) {
         if (!$storage->loadDefaultByUser($this->getOwner(), $this->bundle())) {
           $this->setDefault(TRUE);
@@ -229,7 +232,7 @@ class Profile extends ContentEntityBase implements ProfileInterface {
     parent::postSave($storage, $update);
 
     // Check if this profile is, or became the default.
-    if ($this->getOwner()) {
+    if ($this->getOwnerId() > 0) {
       if ($this->isDefault()) {
         /** @var \Drupal\profile\Entity\ProfileInterface[] $profiles */
         $profiles = $storage->loadMultipleByUser($this->getOwner(), $this->bundle());
@@ -264,7 +267,8 @@ class Profile extends ContentEntityBase implements ProfileInterface {
       ->setDescription(t('The user that owns this profile.'))
       ->setRevisionable(TRUE)
       ->setSetting('target_type', 'user')
-      ->setSetting('handler', 'default');
+      ->setSetting('handler', 'default')
+      ->setDefaultValueCallback('Drupal\profile\Entity\Profile::getCurrentUserId');
 
     $fields['status'] = BaseFieldDefinition::create('boolean')
       ->setLabel(t('Active'))
@@ -288,6 +292,18 @@ class Profile extends ContentEntityBase implements ProfileInterface {
       ->setRevisionable(TRUE);
 
     return $fields;
+  }
+
+  /**
+   * Default value callback for 'uid' base field definition.
+   *
+   * @see ::baseFieldDefinitions()
+   *
+   * @return array
+   *   An array of default values.
+   */
+  public static function getCurrentUserId() {
+    return [\Drupal::currentUser()->id()];
   }
 
 }

@@ -2,10 +2,10 @@
 
 namespace Drupal\dropdown_language\Plugin\Block;
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Block\BlockBase;
 use Drupal\Core\Config\ConfigFactoryInterface;
-use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Session\AccountInterface;
@@ -75,7 +75,7 @@ class DropdownLanguage extends BlockBase implements ContainerFactoryPluginInterf
    * @param \Drupal\Core\Render\RendererInterface $renderer
    *   The renderer.
    */
-  public function __construct(array $block_configuration, $plugin_id, $plugin_definition, LanguageManagerInterface $language_manager, ConfigFactoryInterface $config_factory,  PathMatcherInterface $path_matcher,  RendererInterface $renderer) {
+  public function __construct(array $block_configuration, $plugin_id, $plugin_definition, LanguageManagerInterface $language_manager, ConfigFactoryInterface $config_factory, PathMatcherInterface $path_matcher, RendererInterface $renderer) {
     parent::__construct($block_configuration, $plugin_id, $plugin_definition);
 
     $this->languageManager = $language_manager;
@@ -134,7 +134,7 @@ class DropdownLanguage extends BlockBase implements ContainerFactoryPluginInterf
         $links = [$current_language => $links[$current_language]] + $links;
         // Set an active class for styling.
         $links[$current_language]['attributes']['class'][] = 'active-language';
-        // remove self-referencing link
+        // Remove self-referencing link.
         $links[$current_language]['url'] = Url::fromRoute('<nolink>');
       }
 
@@ -146,20 +146,20 @@ class DropdownLanguage extends BlockBase implements ContainerFactoryPluginInterf
       $filter_untranslated = $general_config->get('filter_untranslated');
       $always_show_block = $general_config->get('always_show_block');
 
-      // only load once, rather than in switch (in a loop)
+      // Only load once, rather than in switch (in a loop)
       $native_names = FALSE;
-      if ($display_language_id==2) {
-         $native_names = $this->languageManager->getStandardLanguageList();
+      if ($display_language_id == 2) {
+        $native_names = $this->languageManager->getStandardLanguageList();
       }
 
-      /**
+      /*
        * Gets the entity we are currently on.  If path has multiple wildcards
        * treat key zero as main entity.
        */
       $entity = FALSE;
-      if ($filter_untranslated=='1') {
+      if ($filter_untranslated == '1') {
         foreach (\Drupal::routeMatch()->getParameters() as $param) {
-          if ($param instanceof \Drupal\Core\Entity\EntityInterface) {
+          if ($param instanceof EntityInterface) {
             $entity[] = $param;
           }
         }
@@ -167,7 +167,7 @@ class DropdownLanguage extends BlockBase implements ContainerFactoryPluginInterf
 
       foreach ($links as $lid => $link) {
 
-       // Re-label as per general setting.
+        // Re-label as per general setting.
         switch ($display_language_id) {
           case '1':
             $links[$lid]['title'] = Unicode::strtoupper($lid);
@@ -176,7 +176,7 @@ class DropdownLanguage extends BlockBase implements ContainerFactoryPluginInterf
           case '2':
             $name = $link['language']->getName();
             $links[$lid]['title'] = isset($native_names[$lid]) ? $native_names[$lid][1] : $name;
-            if (isset($native_names[$lid]) && (isset($native_names[$lid]) && $native_names[$lid][1]!=$name) ) {
+            if (isset($native_names[$lid]) && (isset($native_names[$lid]) && $native_names[$lid][1] != $name)) {
               $links[$lid]['attributes']['title'] = $link['language']->getName();
             }
             break;
@@ -186,11 +186,11 @@ class DropdownLanguage extends BlockBase implements ContainerFactoryPluginInterf
             break;
         }
 
-       // Removes unused languages from the dropdown.
-       if ($entity && $filter_untranslated=='1') {
+        // Removes unused languages from the dropdown.
+        if ($entity && $filter_untranslated == '1') {
           $has_translation = (method_exists($entity[0], 'getTranslationStatus')) ? $entity[0]->getTranslationStatus($lid) : FALSE;
           $this_translation = ($has_translation && method_exists($entity[0], 'getTranslation')) ? $entity[0]->getTranslation($lid) : FALSE;
-          $access_translation = ($this_translation && method_exists($this_translation, 'access') && $this_translation->access()) ? TRUE : FALSE;
+          $access_translation = ($this_translation && method_exists($this_translation, 'access') && $this_translation->access('view')) ? TRUE : FALSE;
           if (!$this_translation || !$access_translation) {
             unset($links[$lid]);
           }

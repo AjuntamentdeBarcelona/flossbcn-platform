@@ -1,4 +1,31 @@
 <?php 
+	
+function social_custom_preprocess_html(&$variables) {
+	$node = \Drupal::routeMatch()->getParameter('node');
+	if ($node instanceof \Drupal\node\NodeInterface) {
+	  $nid = $node->id();
+	  if($nid == 175) {
+		 	$current_user = \Drupal::currentUser();
+		 	$entra = FALSE;
+			
+		 	foreach($current_user->getRoles() as $role) {
+				if(($role == 'editor') || ($role == 'administrator')) {
+					$entra = TRUE;
+					break;
+				}		
+			}
+			
+			if(!$entra) {
+				$url = \Drupal::getContainer()->get('url_generator')->generateFromRoute('<front>');
+				header("HTTP/1.1 301 Moved Permanently"); 
+				header("Location: $url"); 
+				exit;
+			}			 
+	  }
+	}
+}
+
+
 function social_custom_preprocess_page(&$variables) {
 	/* $route_name = \Drupal::routeMatch()->getRouteName();	
 	$parameters = \Drupal::routeMatch()->getParameters(); 
@@ -6,7 +33,7 @@ function social_custom_preprocess_page(&$variables) {
 	kint($parameters); */
 	
 	
-	$tempstore = \Drupal::service('user.private_tempstore')->get('change_lang');
+	/* $tempstore = \Drupal::service('user.private_tempstore')->get('change_lang');
 		
 	if(!empty($_GET['langdrauta'])) {
 		$language_selected = $_GET['langdrauta'];		
@@ -20,7 +47,7 @@ function social_custom_preprocess_page(&$variables) {
 			 $config = \Drupal::config('language.negotiation')->get('session');
 			 $_SESSION[$config['parameter']] = $language_selected;				
 		} 		
-	}	
+	}	*/
 }
 function social_custom_local_tasks_alter(&$local_tasks) {
   // kint($local_tasks);

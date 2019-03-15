@@ -1,25 +1,30 @@
 {# SUPERIOR #}
-<div class="pos-rel main-image-front" {% if content.field_image | render %} style="background-image: url({{ content.field_image[0]['#item'].entity.uri.value | image_style('optimizacion_global') }})" {% endif %}>
+{% if node.field_show_slider is not empty and node.field_show_slider.value %}
+<div class="slider-home-content ">
+	{{ content.field_slider_home}}
+</div>
+{% else %}
+<div class="pos-rel main-image-front " {% if content.field_image | render %} style="background-image: url({{ content.field_image[0]['#item'].entity.uri.value | image_style('optimizacion_global') }})" {% endif %}>
  <div class="capa-gris"></div>
  <div class="container">
- <div class="cover-wrap color-white">
-      <div class="hero-canvas"> 
+ 	<div class="cover-wrap color-white">
+      <div class="hero-canvas">
             <div class="field field--name-field-text-block field--type-text-long field--label-hidden field--item">
 	    		{% if content.field_showed_title | render %}
 	            <h1>{{ content.field_showed_title.0 }}</h1>
 	            {% endif %}
 	            <div class="fs20">{{ content.field_lead }}</div>
             </div>
-            
+
 			{% if not logged_in %}
 				<a href="{{ path('user.register') }}" class="btn btn-primary waves-effect waves-btn waves-light">{% trans %}Sign up{% endtrans %}</a>
 				<a href="{{ path('user.login') }}" class="btn btn-default waves-effect waves-btn">{% trans %}Login{% endtrans %}</a>
 			{% endif %}
       </div>
-    </div>  
+    </div>
  </div>
 </div>
-
+{% endif %}
 
 
 {# LEAD #}
@@ -32,7 +37,7 @@
 </div>
 <div class="container">
 	{% if content.field_titol_map	 | render %}
-		<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_titol_map.0 }}</h2>	
+		<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_titol_map.0 }}</h2>
 	{% endif %}
 
 {{ leaflet_views_embed_view_custom_query() }}
@@ -42,10 +47,10 @@
 <div>
 	<div class="container container-custom section-marker">
 		{% if content.field_titol_destacats | render %}
-			<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_titol_destacats.0 }}</h2>	
+			<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_titol_destacats.0 }}</h2>
 		{% endif %}
-		
-		{# DESTACADOS #}	
+
+		{# DESTACADOS #}
 		{% if content.field_destacar | render %}
 		{% set count = 0 %}
 		<div class="row-drauta igualar-alturas">
@@ -57,7 +62,7 @@
 		 {% endfor %}
 		</div>
 		{% endif %}
-		{# FIN DESTACADOS #}	
+		{# FIN DESTACADOS #}
 	</div>
 </div>
 
@@ -65,21 +70,31 @@
 
 {# DESTACATS TOPIC Y EVENT FLOSSBCN#}
 <div class="container container-custom section-marker-bottom color-teaser-inside">
-	
+
 	<div class="row-drauta">
-	<div class="col2 col">	
+	<div class="col2 col">
 	{% if content.field_flossbcn_title	 | render %}
-		<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_flossbcn_title.0 }}</h2>	
+		<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_flossbcn_title.0 }}</h2>
 	{% endif %}
-	
-		{{ drupal_view('topic_floss', 'event', 4) }}
-		{{ drupal_view('topic_floss', 'topics', 4) }}	
+
+    {% if content.field_home_highlight_event | render %}
+	    {{ content.field_home_highlight_event | render }}
+	{% else %}
+	    {{ drupal_view('topic_floss', 'event', 4) }}
+	{% endif %}
+
+	{% if content.field_home_highlight_topic | render %}
+	    {{ content.field_home_highlight_topic | render }}
+	{% else %}
+	    {{ drupal_view('topic_floss', 'topics', 4) }}
+	{% endif %}
+
 	</div>
 	<div class="col2 col">
 		{% if content.field_titol_xxss	 | render %}
-		<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_titol_xxss.0 }}</h2>	
+		<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_titol_xxss.0 }}</h2>
 	{% endif %}
-	
+
 				<a class="twitter-timeline" data-height="455" href="https://twitter.com/flossbcn?ref_src=twsrc%5Etfw">Tweets by flossbcn</a> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
 	</div>
@@ -87,15 +102,72 @@
 
 </div>
 
+{% if true %}
+<div class="section-marker" style="background-color:white;">
+	<div class="container container-custom">
+		<div class="row-drauta">
+			<div class="col2 col">
+				{% if content.field_title_footer_1|render%}
+					<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_title_footer_1.0 }}</h2>
+				{% endif %}
+				{{ content.field_image_footer}}
+			</div>
 
 
+			<div class="col2 col">
+				{% if content.field_title_footer_2|render%}
+					<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_title_footer_2.0 }}</h2>
+				{% endif %}
+				{{ content.field_text_footer }}
+			</div>
+
+
+		</div>
+	</div>
+	<div class="container container-custom section-marker-bottom">
+		<div class="">
+			<div class="">
+				{% if content.field_title_footer_3|render%}
+					<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_title_footer_3.0 }}</h2>
+				{% endif %}
+				<div class="agrupacion-logos-footer">
+					{{ content.field_image_wit}}
+				</div>
+			</div>
+
+		</div>
+	</div>
+</div>
+{% endif %}
+
+
+<div class="container container-custom section-marker">
+	<div class="row-drauta">
+		<div class="col4 col text-center mb30">
+			<p style="font-size:60px;margin-bottom:0px;">{{ get_entity_number('node', 'topic') }}</p>
+			<p class="fw600 fs18 mb15 text-uppercase">{{ 'Topics'|t }}</p>
+		</div>
+		<div class="col4 col text-center mb30">
+			<p style="font-size:60px;margin-bottom:0px;">{{ get_entity_number('node', 'event') }}</p>
+			<p class="fw600 fs18 mb15 text-uppercase">{% trans %}Events{% endtrans %}</p>
+		</div>
+		<div class="col4 col text-center mb30">
+			<p style="font-size:60px;margin-bottom:0px;">{{ get_entity_number('groups', 'entities') }}</p>
+			<p class="fw600 fs18 mb15 text-uppercase">{% trans %}Entities{% endtrans %}</p>
+		</div>
+		<div class="col4 col text-center mb30">
+			<p style="font-size:60px;margin-bottom:0px;">{{ get_entity_number('groups', 'public_group') }}</p>
+			<p class="fw600 fs18 mb15 text-uppercase">{% trans %}Projects{% endtrans %}</p>
+		</div>
+	</div>
+</div>
 
 {#
 <div class="container container-custom section-marker-bottom color-teaser-inside">
 	{% if content.field_flossbcn_title	 | render %}
-		<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_flossbcn_title.0 }}</h2>	
+		<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_flossbcn_title.0 }}</h2>
 	{% endif %}
-	
+
 
 	<div class="row-drauta">
 	{% if content.field_topic_and_event_highlight | render %}
@@ -106,37 +178,37 @@
 		 </div>
 		 {% set count = count + 1 %}
 		{% endfor %}
-		
+
 	{% else %}
-	<div class="col2 col">	
+	<div class="col2 col">
 		{{ drupal_view('topic_floss', 'event', 4) }}
 	</div>
 	<div class="col2 col">
-		{{ drupal_view('topic_floss', 'topics', 4) }}	
+		{{ drupal_view('topic_floss', 'topics', 4) }}
 	</div>
 	{% endif %}
-	
-	
-	
-	
-	
+
+
+
+
+
 	</div>
 
 </div>
 #}
 
 {#
-<div class="container container-custom ">	
-	
+<div class="container container-custom ">
+
 	{% if content.field_titol_xxss	 | render %}
-		<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_titol_xxss.0 }}</h2>	
-	{% endif %}	
-	
+		<h2 class="fw600 fs18 mb15 text-uppercase">{{ content.field_titol_xxss.0 }}</h2>
+	{% endif %}
+
 	<div class="row-drauta">
 		<div class="inside-col">
 		{{ drupal_view('social', 'twitter') }}
 		</div>
-	</div>	
+	</div>
 </div>
 
 #}

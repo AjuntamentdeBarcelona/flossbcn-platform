@@ -31,7 +31,11 @@ function drauta_alters_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $
 		$form['#validate'][] = 'group_public_group_edit_form_validate_custom';		
 	} else if ($form_id == 'group_public_group_add_form') {
 		$form['#validate'][] = 'group_public_group_edit_form_validate_custom';	
-	}	
+	} else if ($form_id == 'group_entities_delete_form') {
+        \Drupal::request()->query->remove('destination');
+        $url = \Drupal::getContainer()->get('url_generator')->generateFromRoute('<front>');
+        \Drupal::request()->query->add(['destination' => $url]);
+	}
 }
 
 /* function drauta_alters_language_switch_links_alter(array &$links, $type, \Drupal\Core\Url $url) {

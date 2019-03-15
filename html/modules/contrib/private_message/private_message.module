@@ -10,6 +10,7 @@ use Drupal\Component\Utility\Xss;
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Mail\MailFormatHelper;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Url;
@@ -109,9 +110,11 @@ function private_message_entity_extra_field_info() {
 function private_message_private_message_thread_view(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display, $view_mode) {
   if ($display->getComponent('last_message')) {
     $messages = $entity->getMessages();
-    $last_message = array_pop($messages);
-    $view_builder = \Drupal::entityManager()->getViewBuilder('private_message');
-    $build['last_message'] = $view_builder->view($last_message, 'inbox');
+    if ($messages) {
+      $last_message = array_pop($messages);
+      $view_builder = \Drupal::entityManager()->getViewBuilder('private_message');
+      $build['last_message'] = $view_builder->view($last_message, 'inbox');
+    }
   }
 
   if ($display->getComponent('private_message_form')) {
@@ -474,7 +477,7 @@ function private_message_mail($key, &$message, $params) {
     $message['from'] = \Drupal::config('system.site')->get('mail');
 
     $message['subject'] = SafeMarkup::checkPlain($message['subject']);
-    $message['body'][] = Xss::filter($body);
+    $message['body'][] = MailFormatHelper::htmlToText(Xss::filter($body));
   }
 }
 

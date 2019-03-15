@@ -5,7 +5,6 @@ namespace Drupal\flag\Form;
 use Drupal\Core\Entity\ContentEntityForm;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
-use Drupal\flag\Plugin\ActionLink\FieldEntry;
 use Drupal\flag\Plugin\ActionLink\FormEntryInterface;
 
 /**

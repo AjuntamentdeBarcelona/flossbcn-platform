@@ -8,6 +8,7 @@
 		  array('data' => t('Content')),
 		  array('data' => t('Link disable report')),
 		  array('data' => t('Link to content')),	  
+      array('data' => t('Author')),	  
 		);
 		
 		$pager = $query->extend('Drupal\Core\Database\Query\PagerSelectExtender')
@@ -24,16 +25,30 @@
 		  
 		  
 		  $url_content = $this->generate_url($type_element, $row->entity_id);
+      $author = $row->name;
+		  
+		  $title_current = '';
+		  if(!empty($row->title)) {
+			 $title_current = $row->title;
+		  } else if(!empty($row->field_post_value)) {
+			  $title_current = $row->field_post_value;
+		  } else if(!empty($row->field_comment_body_value)) {
+			  $title_current = $row->field_comment_body_value;
+		  } else if(!empty($row->label)) {
+			  $title_current = $row->label;
+		  }
+		  
+		   $rows[] = array('data' => array(
+			    'title' => $title_current,
+			    'link_disable_disable' =>  new FormattableMarkup('<a href=":link">@name</a>', 
+		        				[':link' => $url, '@name' => 'Disable report']),
+			    'link_content' => new FormattableMarkup('<a href=":link">@name</a>', 
+		        				[':link' => $url_content, '@name' => 'View']),
+        'author' => $author,
+			  ));
 		  
 		  
-		  
-		  $rows[] = array('data' => array(
-		    'title' => $row->title,
-		    'link_disable_disable' =>  new FormattableMarkup('<a href=":link">@name</a>', 
-	        				[':link' => $url, '@name' => 'Disable report']),
-		    'link_content' => new FormattableMarkup('<a href=":link">@name</a>', 
-	        				[':link' => $url_content, '@name' => 'View'])
-		  ));	  	  
+		  	  	  
 		}	
 		
 		$build = array(

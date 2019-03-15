@@ -2,10 +2,6 @@
 
 namespace Drupal\flag\Tests;
 
-use Drupal\Core\Entity\EntityInterface;
-use Drupal\flag\Entity\Flag;
-use Drupal\flag\Tests\FlagTestBase;
-
 /**
  * Tests the current user sees links for their own flaggings, or global ones.
  *
@@ -16,7 +12,7 @@ class LinkOwnershipAccessTest extends FlagTestBase {
   /**
    * The flaggable entity to test.
    *
-   * @var EntityInterface
+   * @var \Drupal\Core\Entity\EntityInterface
    */
   protected $node;
 
@@ -26,7 +22,7 @@ class LinkOwnershipAccessTest extends FlagTestBase {
   protected function setUp() {
     parent::setUp();
 
-    $this->entityQueryManager = $this->container->get('entity.query');
+    $this->entityTypeManager = $this->container->get('entity_type.manager');
 
     // Create a node to flag.
     $this->node = $this->drupalCreateNode(['type' => $this->nodeType]);

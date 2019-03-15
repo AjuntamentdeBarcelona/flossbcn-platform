@@ -1,0 +1,7 @@
+custom_recaptcha.config:
+  path: '/admin/config/custom-recaptcha'
+  defaults:
+    _form: '\Drupal\custom_recaptcha\Form\ConfigForm'
+    _title: 'Config recaptcha'
+  requirements:
+    _permission: 'administer site configuration'

@@ -5,7 +5,10 @@ namespace Drupal\addtoany\Form;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Extension\ModuleHandler;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Entity\ContentEntityType;
+use Drupal\Core\Link;
 
 /**
  * Configure AddToAny settings for this site.
@@ -191,6 +194,69 @@ class AddToAnySettingsForm extends ConfigFormBase {
       ];
     }
 
+    $form['addtoany_entity_settings'] = [
+      '#type'         => 'details',
+      '#title'        => $this->t('Entities'),
+    ];
+
+    $form['addtoany_entity_settings']['addtoany_entity_tip_1'] = [
+      '#type' => 'html_tag',
+      '#tag' => 'p',
+      '#value' => $this
+        ->t('AddToAny is available on the &quot;Manage display&quot; pages of enabled entities, e.g. Structure &gt; Content types &gt; Article &gt; Manage display.'),
+    ];
+
+    $entities = self::getContentEntities();
+
+    // Allow modules to alter the entity types.
+    \Drupal::moduleHandler()->alter('addtoany_entity_types', $entities);
+
+    // Whitelist the entity IDs that let us link to each bundle's Manage Display page.
+    $linkableEntities = [
+      'block_content', 'comment', 'commerce_product', 'commerce_store',
+      'contact_message', 'media', 'node', 'paragraph',
+    ];
+
+    foreach ($entities as $entity) {
+      $entityId = $entity->id();
+      $entityType = $entity->getBundleEntityType();
+      // Get all available bundles for the current entity.
+      $bundles = \Drupal::service('entity.manager')->getBundleInfo($entityId);
+      $links = [];
+
+      foreach($bundles as $machine_name => $bundle) {
+        $label = $bundle['label'];
+
+        // Some labels are TranslatableMarkup objects (such as the File entity).
+        if ($label instanceof TranslatableMarkup) {
+          $label = $label->render();
+        }
+
+        // Link to the bundle's Manage Display page if the entity ID supports the route pattern.
+        if (in_array($entityId, $linkableEntities) && $entityType) {
+          $links[] = Link::createFromRoute(t($label), "entity.entity_view_display.{$entityId}.default", [
+            $entityType => $machine_name,
+          ])->toString();
+        }
+      }
+
+      $description = empty($links) ? '' : '( ' . implode(' | ', $links) . ' )';
+
+      $form['addtoany_entity_settings'][$entityId] = [
+        '#type' => 'checkbox',
+        '#title' => $this->t('@entity', ['@entity' => $entity->getLabel()]),
+        '#default_value' => $addtoany_settings->get("entities.{$entityId}"),
+        '#description' => $description,
+        '#attributes' => ['class' => ['addtoany-entity-checkbox']]
+      ];
+    }
+
+    $form['addtoany_entity_settings']['addtoany_entity_tip_2'] = [
+      '#type' => 'html_tag',
+      '#tag' => 'p',
+      '#value' => $this->t('A cache rebuild may be required before changes take effect.'),
+    ];
+
     return parent::buildForm($form, $form_state);
   }
 
@@ -207,10 +273,33 @@ class AddToAnySettingsForm extends ConfigFormBase {
       ->set('custom_universal_button', $values['addtoany_custom_universal_button'])
       ->set('universal_button', $values['addtoany_universal_button'])
       ->set('universal_button_placement', $values['addtoany_universal_button_placement'])
-      ->set('no_3p', $values['addtoany_no_3p'])
-      ->save();
+      ->set('no_3p', $values['addtoany_no_3p']);
+
+    foreach(self::getContentEntities() as $entity) {
+      $entityId = $entity->id();
+      $this->config('addtoany.settings')
+        ->set("entities.{$entityId}", $values[$entityId]);
+    }
+
+    $this->config('addtoany.settings')->save();
 
     parent::submitForm($form, $form_state);
   }
 
+  /**
+   * Get all available content entities in the environment.
+   * @return array
+   */
+  public static function getContentEntities() {
+    $content_entity_types = [];
+    $entity_type_definitions = \Drupal::entityTypeManager()->getDefinitions();
+    /* @var $definition EntityTypeInterface */
+    foreach ($entity_type_definitions as $definition) {
+      if ($definition instanceof ContentEntityType) {
+        $content_entity_types[] = $definition;
+      }
+    }
+
+    return $content_entity_types;
+  }
 }

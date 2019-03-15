@@ -22,7 +22,7 @@ class SetCanvasTest extends ImageEffectsTestBase {
   }
 
   /**
-   * Test effect on required toolkits.
+   * Set canvas effect test.
    *
    * @param string $toolkit_id
    *   The id of the toolkit to set up.
@@ -33,16 +33,9 @@ class SetCanvasTest extends ImageEffectsTestBase {
    *
    * @dataProvider providerToolkits
    */
-  public function testOnToolkits($toolkit_id, $toolkit_config, array $toolkit_settings) {
+  public function testSetCanvasEffect($toolkit_id, $toolkit_config, array $toolkit_settings) {
     $this->changeToolkit($toolkit_id, $toolkit_config, $toolkit_settings);
-  }
 
-  /**
-   * Set canvas effect test.
-   *
-   * @depends testOnToolkits
-   */
-  public function testSetCanvasEffect() {
     $original_uri = $this->getTestImageCopyUri('/files/image-test.png', 'simpletest');
     $derivative_uri = $this->testImageStyle->buildUri($original_uri);
 

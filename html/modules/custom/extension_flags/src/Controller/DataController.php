@@ -17,7 +17,10 @@ class DataController extends ControllerBase {
 	 $query->fields('f', array('entity_id', 'flag_id'));	
 	
 	 $query->join('post__field_post', 'pfp', 'f.entity_id = pfp.entity_id');
+  $query->join('users', 'u', 'f.uid = u.uid');
+  $query->join('users_field_data', 'ufd', 'ufd.uid = u.uid');
 	$query->fields('pfp', array('field_post_value'));
+  $query->fields('ufd', array('name'));
 		
 	$query->condition('f.flag_id', 'stream_report');
 	
@@ -90,9 +93,12 @@ class DataController extends ControllerBase {
 	$db = \Drupal::database();
 	$query = $db->select('flagging','f');	
 	$query->join('groups_field_data', 'gfd', 'gfd.id = f.entity_id');
+  $query->join('users', 'u', 'f.uid = u.uid');
+  $query->join('users_field_data', 'ufd', 'ufd.uid = u.uid');
 	
 	$query->fields('f', array('entity_id', 'flag_id'));
 	$query->fields('gfd', array('label'));		
+  $query->fields('ufd', array('name'));
 	$query->condition('f.flag_id', 'report_group'); 
 	 
 	return $serviceTable->create_table($query, 'group');
@@ -167,9 +173,12 @@ class DataController extends ControllerBase {
 	$db = \Drupal::database();
 	$query = $db->select('flagging','f');	
 	$query->join('comment__field_comment_body', 'nfcb', 'nfcb.entity_id = nfcb.entity_id');
+  $query->join('users', 'u', 'f.uid = u.uid');
+  $query->join('users_field_data', 'ufd', 'ufd.uid = u.uid');
 	
 	$query->fields('f', array('entity_id', 'flag_id'));
 	$query->fields('nfcb', array('field_comment_body_value'));		
+  $query->fields('ufd', array('name'));
 	$query->condition('f.flag_id', 'report_comment');
 	 
 	 
@@ -239,9 +248,12 @@ class DataController extends ControllerBase {
 	 $db = \Drupal::database();
 	 $query = $db->select('flagging','f');	
 	 $query->join('node_field_data', 'nfd', 'nfd.nid = f.entity_id');
+   $query->join('users', 'u', 'f.uid = u.uid');
+   $query->join('users_field_data', 'ufd', 'ufd.uid = u.uid');
 	
 	 $query->fields('f', array('entity_id', 'flag_id'));
 	 $query->fields('nfd', array('title'));		
+   $query->fields('ufd', array('name'));
 	 $query->condition('f.flag_id', 'report_content');	 
 	 
 	 return $serviceTable->create_table($query, 'node');

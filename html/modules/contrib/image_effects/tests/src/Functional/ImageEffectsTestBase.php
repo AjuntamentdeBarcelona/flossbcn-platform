@@ -2,9 +2,11 @@
 
 namespace Drupal\Tests\image_effects\Functional;
 
+use Drupal\Core\Database\Database;
 use Drupal\Core\Image\ImageInterface;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\image\Entity\ImageStyle;
+use Drupal\image_effects\Component\GdImageAnalysis;
 
 /**
  * Base test class for image_effects tests.
@@ -217,7 +219,7 @@ abstract class ImageEffectsTestBase extends BrowserTestBase {
     // GraphicsMagick binaries installed, so the test will be skipped; they can
     // be run locally if binaries are installed.
     if ($toolkit_id === 'imagemagick') {
-      $status = \Drupal::service('image.toolkit.manager')->createInstance('imagemagick')->checkPath('');
+      $status = \Drupal::service('image.toolkit.manager')->createInstance('imagemagick')->getExecManager()->checkPath('');
       if (!empty($status['errors'])) {
         $this->markTestSkipped("Tests for '{$toolkit_settings['binaries']}' cannot run because the binaries are not available on the shell path.");
       }
@@ -323,6 +325,22 @@ abstract class ImageEffectsTestBase extends BrowserTestBase {
   }
 
   /**
+   * Gets the current cache tag invalidations of an image style.
+   *
+   * @param string $image_style_name
+   *   The image style name.
+   *
+   * @return int
+   *   The invalidations value.
+   */
+  protected function getImageStyleCacheTagInvalidations($image_style_name) {
+    $query = Database::getConnection()->select('cachetags', 'a');
+    $query->addField('a', 'invalidations');
+    $query->condition('tag', 'config:image.style.' . $image_style_name);
+    return (int) $query->execute()->fetchColumn();
+  }
+
+  /**
    * Asserts a Text overlay image.
    */
   protected function assertTextOverlay($image, $width, $height) {
@@ -330,6 +348,37 @@ abstract class ImageEffectsTestBase extends BrowserTestBase {
     $h_error = abs($image->getHeight() - $height);
     $tolerance = 0.1;
     $this->assertTrue($w_error < $width * $tolerance && $h_error < $height * $tolerance, "Width and height ({$image->getWidth()}x{$image->getHeight()}) approximate expected results ({$width}x{$height})");
+  }
+
+  /**
+   * Asserts that two GD images are equal.
+   *
+   * Some difference can be allowed to account for e.g. compression artifacts.
+   *
+   * @param \Drupal\Core\Image\ImageInterface $expected_image
+   *   A GD image resource for the expected image.
+   * @param \Drupal\Core\Image\ImageInterface $actual_image
+   *   A GD image resource for the actual image.
+   * @param int $max_diff
+   *   (optional) The maximum allowed difference, range from 0 to 255. Defaults
+   *   to 1.
+   * @param string $message
+   *   (optional) The message to display along with the assertion.
+   */
+  protected function assertImagesAreEqual(ImageInterface $expected_image, ImageInterface $actual_image, $max_diff = 1, $message = NULL) {
+    // Only works with GD.
+    $this->assertSame('gd', $expected_image->getToolkitId());
+    $this->assertSame('gd', $actual_image->getToolkitId());
+
+    // Check dimensions.
+    $this->assertSame($expected_image->getWidth(), $actual_image->getWidth());
+    $this->assertSame($expected_image->getHeight(), $actual_image->getHeight());
+
+    // Image difference.
+    $difference = GdImageAnalysis::difference($expected_image->getToolkit()->getResource(), $actual_image->getToolkit()->getResource());
+    $mean = GdImageAnalysis::mean($difference);
+    imagedestroy($difference);
+    $this->assertTrue($mean < $max_diff, $message);
   }
 
 }

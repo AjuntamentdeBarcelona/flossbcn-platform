@@ -3,7 +3,6 @@
 namespace Drupal\search_api_db\Plugin\search_api\backend;
 
 use Drupal\Component\Utility\Crypt;
-use Drupal\Component\Utility\Html;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Database as CoreDatabase;
@@ -29,7 +28,7 @@ use Drupal\search_api\Query\ConditionGroupInterface;
 use Drupal\search_api\Query\QueryInterface;
 use Drupal\search_api\SearchApiException;
 use Drupal\search_api\Utility\DataTypeHelper;
-use Drupal\search_api_autocomplete\Suggestion;
+use Drupal\search_api_autocomplete\SearchInterface;
 use Drupal\search_api_autocomplete\Suggestion\SuggestionFactory;
 use Drupal\search_api_db\DatabaseCompatibility\DatabaseCompatibilityHandlerInterface;
 use Drupal\search_api_db\DatabaseCompatibility\GenericDatabase;
@@ -159,6 +158,15 @@ class Database extends BackendPluginBase implements PluginFormInterface {
    * @var array
    */
   protected $warnings = [];
+
+  /**
+   * Counter for named expressions used in database queries.
+   *
+   * Used to generate unique aliases even with multi-nested queries.
+   *
+   * @var int
+   */
+  protected $expressionCounter = 0;
 
   /**
    * Constructs a Database object.
@@ -399,7 +407,7 @@ class Database extends BackendPluginBase implements PluginFormInterface {
     return [
       'database' => NULL,
       'min_chars' => 1,
-      'partial_matches' => FALSE,
+      'matching' => 'words',
       'autocomplete' => [
         'suggest_suffix' => TRUE,
         'suggest_words' => TRUE,
@@ -465,11 +473,15 @@ class Database extends BackendPluginBase implements PluginFormInterface {
       '#default_value' => $this->configuration['min_chars'],
     ];
 
-    $form['partial_matches'] = [
-      '#type' => 'checkbox',
-      '#title' => $this->t('Search on parts of a word'),
-      '#description' => $this->t('Find keywords in parts of a word, too. (For example, find results with "database" when searching for "base"). <strong>Caution:</strong> This can make searches much slower on large sites!'),
-      '#default_value' => $this->configuration['partial_matches'],
+    $form['matching'] = [
+      '#type' => 'radios',
+      '#title' => $this->t('Partial matching'),
+      '#default_value' => $this->configuration['matching'],
+      '#options' => [
+        'words' => $this->t('Match whole words only'),
+        'partial' => $this->t('Match on parts of a word'),
+        'prefix' => $this->t('Match words starting with given keywords'),
+      ],
     ];
 
     if ($this->getModuleHandler()->moduleExists('search_api_autocomplete')) {
@@ -511,10 +523,17 @@ class Database extends BackendPluginBase implements PluginFormInterface {
         'info' => $this->configuration['min_chars'],
       ];
     }
-    $info[] = [
-      'label' => $this->t('Search on parts of a word'),
-      'info' => !empty($this->configuration['partial_matches']) ? $this->t('enabled') : $this->t('disabled'),
+
+    $labels = [
+      'words' => $this->t('Match whole words only'),
+      'partial' => $this->t('Match on parts of a word'),
+      'prefix' => $this->t('Match words starting with given keywords'),
     ];
+    $info[] = [
+      'label' => $this->t('Partial matching'),
+      'info' => $labels[$this->configuration['matching']],
+    ];
+
     if (!empty($this->configuration['autocomplete'])) {
       $this->configuration['autocomplete'] += [
         'suggest_suffix' => TRUE,
@@ -669,12 +688,12 @@ class Database extends BackendPluginBase implements PluginFormInterface {
     // A DB prefix might further reduce the maximum length of the table name.
     $max_bytes = 62;
     if ($db_prefix = $this->database->tablePrefix()) {
-      // Use strlen() instead of Unicode::strlen() since we want to measure
-      // bytes, not characters.
+      // Use strlen() instead of mb_strlen() since we want to measure bytes, not
+      // characters.
       $max_bytes -= strlen($db_prefix);
     }
 
-    $base = $table = Unicode::truncateBytes($prefix . Unicode::strtolower(preg_replace('/[^a-z0-9]/i', '_', $name)), $max_bytes);
+    $base = $table = Unicode::truncateBytes($prefix . mb_strtolower(preg_replace('/[^a-z0-9]/i', '_', $name)), $max_bytes);
     $i = 0;
     while ($this->database->schema()->tableExists($table)) {
       $suffix = '_' . ++$i;
@@ -703,7 +722,7 @@ class Database extends BackendPluginBase implements PluginFormInterface {
   protected function findFreeColumn($table, $column) {
     $maxbytes = 62;
 
-    $base = $name = Unicode::truncateBytes(Unicode::strtolower(preg_replace('/[^a-z0-9]/i', '_', $column)), $maxbytes);
+    $base = $name = Unicode::truncateBytes(mb_strtolower(preg_replace('/[^a-z0-9]/i', '_', $column)), $maxbytes);
     // If the table does not exist yet, the initial name is not taken.
     if ($this->database->schema()->tableExists($table)) {
       $i = 0;
@@ -769,7 +788,7 @@ class Database extends BackendPluginBase implements PluginFormInterface {
     $db_field += [
       'description' => "The field's value for this item",
     ];
-    if ($new_table) {
+    if ($new_table || $type === 'field') {
       $db_field['not null'] = TRUE;
     }
     $this->database->schema()->addField($db['table'], $column, $db_field);
@@ -924,8 +943,13 @@ class Database extends BackendPluginBase implements PluginFormInterface {
           elseif ($this->sqlType($old_type) != $this->sqlType($new_type)) {
             // There is a change in SQL type. We don't have to clear the index,
             // since types can be converted.
-            $this->database->schema()->changeField($field['table'], 'value', 'value', $this->sqlType($new_type) + ['description' => "The field's value for this item"]);
-            $this->database->schema()->changeField($denormalized_table, $field['column'], $field['column'], $this->sqlType($new_type) + ['description' => "The field's value for this item"]);
+            $sql_spec = $this->sqlType($new_type);
+            $sql_spec += [
+              'description' => "The field's value for this item",
+            ];
+            $this->database->schema()->changeField($denormalized_table, $field['column'], $field['column'], $sql_spec);
+            $sql_spec['not null'] = TRUE;
+            $this->database->schema()->changeField($field['table'], 'value', 'value', $sql_spec);
             $reindex = TRUE;
           }
           elseif ($old_type == 'date' || $new_type == 'date') {
@@ -955,7 +979,7 @@ class Database extends BackendPluginBase implements PluginFormInterface {
               }
               $this->database->update($text_table)
                 ->expression('score', $expression, $args)
-                ->condition('field_name', self::getTextFieldName($field_id))
+                ->condition('field_name', static::getTextFieldName($field_id))
                 ->execute();
             }
             else {
@@ -1081,7 +1105,7 @@ class Database extends BackendPluginBase implements PluginFormInterface {
     if ($this->getDataTypeHelper()->isTextType($field['type'])) {
       // Remove data from the text table.
       $this->database->delete($field['table'])
-        ->condition('field_name', self::getTextFieldName($name))
+        ->condition('field_name', static::getTextFieldName($name))
         ->execute();
     }
     elseif ($this->database->schema()->tableExists($field['table'])) {
@@ -1150,7 +1174,7 @@ class Database extends BackendPluginBase implements PluginFormInterface {
       }
       catch (\Exception $e) {
         // We just log the error, hoping we can index the other items.
-        $this->getLogger()->warning(Html::escape($e->getMessage()));
+        $this->getLogger()->warning($e->getMessage());
       }
     }
     return $indexed;
@@ -1253,7 +1277,7 @@ class Database extends BackendPluginBase implements PluginFormInterface {
           /** @var \Drupal\search_api\Plugin\search_api\data_type\value\TextTokenInterface $token */
           foreach ($values as $token) {
             $word = $token->getText();
-            $score = $token->getBoost();
+            $score = $token->getBoost() * $item->getBoost();
 
             // In rare cases, tokens with leading or trailing whitespace can
             // slip through. Since this can lead to errors when such tokens are
@@ -1263,7 +1287,7 @@ class Database extends BackendPluginBase implements PluginFormInterface {
 
             // Store the first 30 characters of the string as the denormalized
             // value.
-            if (Unicode::strlen($denormalized_value) < 30) {
+            if (mb_strlen($denormalized_value) < 30) {
               $denormalized_value .= $word . ' ';
             }
 
@@ -1271,7 +1295,7 @@ class Database extends BackendPluginBase implements PluginFormInterface {
             if (is_numeric($word)) {
               $word = ltrim($word, '-0');
             }
-            elseif (Unicode::strlen($word) < $this->configuration['min_chars']) {
+            elseif (mb_strlen($word) < $this->configuration['min_chars']) {
               continue;
             }
 
@@ -1295,12 +1319,13 @@ class Database extends BackendPluginBase implements PluginFormInterface {
               $unique_tokens[$word_base_form]['score'] += $score;
             }
           }
-          $denormalized_values[$column] = Unicode::substr(trim($denormalized_value), 0, 30);
+          $denormalized_values[$column] = mb_substr(trim($denormalized_value), 0, 30);
           if ($unique_tokens) {
-            $field_name = self::getTextFieldName($field_id);
+            $field_name = static::getTextFieldName($field_id);
             $boost = $field_info['boost'];
             foreach ($unique_tokens as $token) {
-              $score = round($token['score'] * $boost * self::SCORE_MULTIPLIER);
+              $score = $token['score'] * $boost * self::SCORE_MULTIPLIER;
+              $score = round($score);
               // Take care that the score doesn't exceed the maximum value for
               // the database column (2^32-1).
               $score = min((int) $score, 4294967295);
@@ -1388,8 +1413,8 @@ class Database extends BackendPluginBase implements PluginFormInterface {
    * @param mixed $value
    *   The value to convert.
    * @param string $type
-   *   The type to convert to. One of the keys from
-   *   search_api_default_field_types().
+   *   The Search API type to convert to. (Has to be a type supported by this
+   *   backend.)
    * @param string $original_type
    *   The value's original type.
    * @param \Drupal\search_api\IndexInterface $index
@@ -1420,9 +1445,9 @@ class Database extends BackendPluginBase implements PluginFormInterface {
           }
           foreach (static::splitIntoWords($text) as $word) {
             if ($word) {
-              if (Unicode::strlen($word) > 50) {
+              if (mb_strlen($word) > 50) {
                 $this->getLogger()->warning('An overlong word (more than 50 characters) was encountered while indexing: %word.<br />Since database search servers currently cannot index words of more than 50 characters, the word was truncated for indexing. If this should not be a single word, please make sure the "Tokenizer" processor is enabled and configured correctly for index %index.', ['%word' => $word, '%index' => $index->label()]);
-                $word = Unicode::substr($word, 0, 50);
+                $word = mb_substr($word, 0, 50);
               }
               $tokens[] = new TextToken($word);
             }
@@ -1434,12 +1459,12 @@ class Database extends BackendPluginBase implements PluginFormInterface {
               // Check for over-long tokens.
               $score = $token->getBoost();
               $word = $token->getText();
-              if (Unicode::strlen($word) > 50) {
+              if (mb_strlen($word) > 50) {
                 $new_tokens = [];
                 foreach (static::splitIntoWords($word) as $word) {
-                  if (Unicode::strlen($word) > 50) {
+                  if (mb_strlen($word) > 50) {
                     $this->getLogger()->warning('An overlong word (more than 50 characters) was encountered while indexing: %word.<br />Since database search servers currently cannot index words of more than 50 characters, the word was truncated for indexing. If this should not be a single word, please make sure the "Tokenizer" processor is enabled and configured correctly for index %index.', ['%word' => $word, '%index' => $index->label()]);
-                    $word = Unicode::substr($word, 0, 50);
+                    $word = mb_substr($word, 0, 50);
                   }
                   $new_tokens[] = new TextToken($word, $score);
                 }
@@ -1454,30 +1479,25 @@ class Database extends BackendPluginBase implements PluginFormInterface {
         return $tokens;
 
       case 'string':
-      case 'uri':
         // For non-dates, PHP can handle this well enough.
         if ($original_type == 'date') {
           return date('c', $value);
         }
-        if (Unicode::strlen($value) > 255) {
-          $value = Unicode::substr($value, 0, 255);
+        if (mb_strlen($value) > 255) {
+          $value = mb_substr($value, 0, 255);
           $this->getLogger()->warning('An overlong value (more than 255 characters) was encountered while indexing: %value.<br />Database search servers currently cannot index such values correctly – the value was therefore trimmed to the allowed length.', ['%value' => $value]);
         }
         return $value;
 
       case 'integer':
-      case 'duration':
+      case 'date':
+        return (int) $value;
+
       case 'decimal':
-        return 0 + $value;
+        return (float) $value;
 
       case 'boolean':
         return $value ? 1 : 0;
-
-      case 'date':
-        if (is_numeric($value) || !$value) {
-          return 0 + $value;
-        }
-        return strtotime($value);
 
       default:
         throw new SearchApiException("Unknown field type '$type'.");
@@ -1590,16 +1610,21 @@ class Database extends BackendPluginBase implements PluginFormInterface {
     $results = $query->getResults();
 
     $skip_count = $query->getOption('skip result count');
+    $count = NULL;
     if (!$skip_count) {
       $count_query = $db_query->countQuery();
-      $results->setResultCount($count_query->execute()->fetchField());
+      $count = $count_query->execute()->fetchField();
+      $results->setResultCount($count);
     }
 
-    if ($skip_count || $results->getResultCount()) {
-      if ($query->getOption('search_api_facets')) {
-        $results->setExtraData('search_api_facets', $this->getFacets($query, clone $db_query));
-      }
-
+    // With a "min_count" of 0, some facets can even be available if there are
+    // no results.
+    if ($query->getOption('search_api_facets')) {
+      $facets = $this->getFacets($query, clone $db_query, $count);
+      $results->setExtraData('search_api_facets', $facets);
+    }
+    // Everything else can be skipped if the count is 0.
+    if ($skip_count || $count) {
       $query_options = $query->getOptions();
       if (isset($query_options['offset']) || isset($query_options['limit'])) {
         $offset = isset($query_options['offset']) ? $query_options['offset'] : 0;
@@ -1791,7 +1816,7 @@ class Database extends BackendPluginBase implements PluginFormInterface {
       if (is_numeric($processed_keys)) {
         return ltrim($processed_keys, '-0');
       }
-      elseif (Unicode::strlen($processed_keys) < $this->configuration['min_chars']) {
+      elseif (mb_strlen($processed_keys) < $this->configuration['min_chars']) {
         $this->ignored[$keys] = 1;
         return NULL;
       }
@@ -1886,8 +1911,9 @@ class Database extends BackendPluginBase implements PluginFormInterface {
     $db_query = NULL;
     $mul_words = FALSE;
     $neg_nested = $neg && $conj == 'AND';
-    $match_parts = !empty($this->configuration['partial_matches']);
+    $match_parts = $this->configuration['matching'] !== 'words';
     $keyword_hits = [];
+    $prefix_search = $this->configuration['matching'] === 'prefix';
 
     foreach ($keys as $i => $key) {
       if (!Element::child($i)) {
@@ -1944,14 +1970,16 @@ class Database extends BackendPluginBase implements PluginFormInterface {
         }
 
         foreach ($words as $i => $word) {
-          $db_or->condition('t.word', '%' . $this->database->escapeLike($word) . '%', 'LIKE');
+          $like = $this->database->escapeLike($word);
+          $like = $prefix_search ? "$like%" : "%$like%";
+          $db_or->condition('t.word', $like, 'LIKE');
 
           // Add an expression for each keyword that shows whether the indexed
           // word matches that particular keyword. That way we don't return a
           // result multiple times if a single indexed word (partially) matches
           // multiple keywords. We also remember the column name so we can
           // afterwards verify that each word matched at least once.
-          $alias = 'w' . $i;
+          $alias = 'w' . ++$this->expressionCounter;
           $like = '%' . $this->database->escapeLike($word) . '%';
           $alias = $db_query->addExpression("CASE WHEN t.word LIKE :like_$alias THEN 1 ELSE 0 END", $alias, [":like_$alias" => $like]);
           $db_query->groupBy($alias);
@@ -1959,7 +1987,7 @@ class Database extends BackendPluginBase implements PluginFormInterface {
         }
         // Also add expressions for any nested queries.
         for ($i = $word_count; $i < $subs; ++$i) {
-          $alias = 'w' . $i;
+          $alias = 'w' . ++$this->expressionCounter;
           $alias = $db_query->addExpression('0', $alias);
           $db_query->groupBy($alias);
           $keyword_hits[] = $alias;
@@ -2047,19 +2075,25 @@ class Database extends BackendPluginBase implements PluginFormInterface {
       }
 
       if ($conj == 'AND') {
-        foreach ($negated as $k) {
-          $db_query->condition('t.item_id', $this->createKeysQuery($k, $fields, $all_fields, $index), 'NOT IN');
-        }
+        $condition = $db_query;
       }
       else {
-        $or = new Condition('OR');
-        foreach ($negated as $k) {
-          $or->condition('t.item_id', $this->createKeysQuery($k, $fields, $all_fields, $index), 'NOT IN');
+        $condition = new Condition('OR');
+        $db_query->condition($condition);
+      }
+      foreach ($negated as $k) {
+        $nested_query = $this->createKeysQuery($k, $fields, $all_fields, $index);
+        // For a "NOT IN", the SELECT must not have more than one column.
+        $num_fields = count($nested_query->getFields());
+        $num_expressions = count($nested_query->getExpressions());
+        if ($num_fields + $num_expressions > 1) {
+          $nested_query = $this->database->select($nested_query, 't')
+            ->fields('t', ['item_id']);
         }
-        if (isset($old_query)) {
-          $or->condition('t.item_id', $old_query, 'NOT IN');
-        }
-        $db_query->condition($or);
+        $condition->condition('t.item_id', $nested_query, 'NOT IN');
+      }
+      if (isset($old_query)) {
+        $condition->condition('t.item_id', $old_query, 'NOT IN');
       }
     }
 
@@ -2338,16 +2372,13 @@ class Database extends BackendPluginBase implements PluginFormInterface {
    *   The search query for which facets should be computed.
    * @param \Drupal\Core\Database\Query\SelectInterface $db_query
    *   A database select query which returns all results of that search query.
+   * @param int|null $result_count
+   *   (optional) The total number of results of the search query, if known.
    *
    * @return array
    *   An array of facets, as specified by the search_api_facets feature.
    */
-  protected function getFacets(QueryInterface $query, SelectInterface $db_query) {
-    $table = $this->getTemporaryResultsTable($db_query);
-    if (!$table) {
-      return [];
-    }
-
+  protected function getFacets(QueryInterface $query, SelectInterface $db_query, $result_count = NULL) {
     $fields = $this->getFieldInfo($query->getIndex());
     $ret = [];
     foreach ($query->getOption('search_api_facets') as $key => $facet) {
@@ -2359,8 +2390,33 @@ class Database extends BackendPluginBase implements PluginFormInterface {
       $field = $fields[$facet['field']];
 
       if (empty($facet['operator']) || $facet['operator'] != 'or') {
-        // All the AND facets can use the main query.
-        $select = $this->database->select($table, 't');
+        // First, check whether this can even possibly have any results.
+        if ($result_count !== NULL && $result_count < $facet['min_count']) {
+          continue;
+        }
+
+        // All the AND facets can use the main query. If we didn't yet create a
+        // temporary table for them yet, do so now.
+        if (!isset($table)) {
+          $table = $this->getTemporaryResultsTable($db_query);
+        }
+        if ($table) {
+          $select = $this->database->select($table, 't');
+        }
+        else {
+          // If no temporary table could be created (most likely due to a
+          // missing permission), use a nested query instead.
+          $select = $this->database->select(clone $db_query, 't');
+        }
+        // In case we didn't get the result count passed to the method, we can
+        // get it now. (This allows us to skip AND facets with a min_count
+        // higher than the result count.)
+        if ($result_count === NULL) {
+          $result_count = $select->countQuery()->execute()->fetchField();
+          if ($result_count < $facet['min_count']) {
+            continue;
+          }
+        }
       }
       else {
         // For OR facets, we need to build a different base query that excludes
@@ -2373,7 +2429,13 @@ class Database extends BackendPluginBase implements PluginFormInterface {
             unset($conditions[$i]);
           }
         }
-        $or_db_query = $this->createDbQuery($or_query, $fields);
+        try {
+          $or_db_query = $this->createDbQuery($or_query, $fields);
+        }
+        catch (SearchApiException $e) {
+          $this->logException($e, '%type while trying to create a facets query: @message in %function (line %line of %file).');
+          continue;
+        }
         $select = $this->database->select($or_db_query, 't');
       }
 
@@ -2501,11 +2563,30 @@ class Database extends BackendPluginBase implements PluginFormInterface {
   }
 
   /**
-   * Implements AutocompleteBackendInterface::getAutocompleteSuggestions().
+   * Retrieves autocompletion suggestions for some user input.
    *
-   * @todo Add type-hint for $search as soon as we can rely on the class name.
+   * @param \Drupal\search_api\Query\QueryInterface $query
+   *   A query representing the base search, with all completely entered words
+   *   in the user input so far as the search keys.
+   * @param \Drupal\search_api_autocomplete\SearchInterface $search
+   *   An object containing details about the search the user is on, and
+   *   settings for the autocompletion. See the class documentation for details.
+   *   Especially $search->getOptions() should be checked for settings, like
+   *   whether to try and estimate result counts for returned suggestions.
+   * @param string $incomplete_key
+   *   The start of another fulltext keyword for the search, which should be
+   *   completed. Might be empty, in which case all user input up to now was
+   *   considered completed. Then, additional keywords for the search could be
+   *   suggested.
+   * @param string $user_input
+   *   The complete user input for the fulltext search keywords so far.
+   *
+   * @return \Drupal\search_api_autocomplete\Suggestion\SuggestionInterface[]
+   *   An array of autocomplete suggestions.
+   *
+   * @see \Drupal\search_api_autocomplete\AutocompleteBackendInterface::getAutocompleteSuggestions()
    */
-  public function getAutocompleteSuggestions(QueryInterface $query, $search, $incomplete_key, $user_input) {
+  public function getAutocompleteSuggestions(QueryInterface $query, SearchInterface $search, $incomplete_key, $user_input) {
     $settings = $this->configuration['autocomplete'];
 
     // If none of the options is checked, the user apparently chose a very
@@ -2522,17 +2603,14 @@ class Database extends BackendPluginBase implements PluginFormInterface {
     $fields = $this->getFieldInfo($index);
 
     $suggestions = [];
-    $factory = NULL;
-    if (class_exists(SuggestionFactory::class)) {
-      $factory = new SuggestionFactory($user_input);
-    }
+    $factory = new SuggestionFactory($user_input);
     $passes = [];
     $incomplete_like = NULL;
 
     // Make the input lowercase as the indexed data is (usually) also all
     // lowercase.
-    $incomplete_key = Unicode::strtolower($incomplete_key);
-    $user_input = Unicode::strtolower($user_input);
+    $incomplete_key = mb_strtolower($incomplete_key);
+    $user_input = mb_strtolower($user_input);
 
     // Decide which methods we want to use.
     if ($incomplete_key && $settings['suggest_suffix']) {
@@ -2562,12 +2640,12 @@ class Database extends BackendPluginBase implements PluginFormInterface {
         $query->keys($user_input);
       }
       // To avoid suggesting incomplete words, we have to temporarily disable
-      // the "partial_matches" option. There should be no way we'll save the
-      // server during the createDbQuery() call, so this should be safe.
+      // partial matching. There should be no way we'll save the server during
+      // the createDbQuery() call, so this should be safe.
       $configuration = $this->configuration;
       $db_query = NULL;
       try {
-        $this->configuration['partial_matches'] = FALSE;
+        $this->configuration['matching'] = 'words';
         $db_query = $this->createDbQuery($query, $fields);
         $this->configuration = $configuration;
 
@@ -2645,12 +2723,7 @@ class Database extends BackendPluginBase implements PluginFormInterface {
       $incomp_len = strlen($incomplete_key);
       foreach ($db_query->execute() as $row) {
         $suffix = ($pass == 1) ? substr($row->word, $incomp_len) : ' ' . $row->word;
-        if ($factory) {
-          $suggestions[] = $factory->createFromSuggestionSuffix($suffix, $row->results);
-        }
-        else {
-          $suggestions[] = Suggestion::fromSuggestionSuffix($suffix, $row->results, $user_input);
-        }
+        $suggestions[] = $factory->createFromSuggestionSuffix($suffix, $row->results);
       }
     }
 

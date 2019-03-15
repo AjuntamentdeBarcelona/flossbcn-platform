@@ -12,7 +12,7 @@ use Drupal\Tests\image_effects\Functional\ImageEffectsTestBase;
 class MirrorTest extends ImageEffectsTestBase {
 
   /**
-   * Test effect on required toolkits.
+   * Mirror effect test.
    *
    * @param string $toolkit_id
    *   The id of the toolkit to set up.
@@ -23,16 +23,9 @@ class MirrorTest extends ImageEffectsTestBase {
    *
    * @dataProvider providerToolkits
    */
-  public function testOnToolkits($toolkit_id, $toolkit_config, array $toolkit_settings) {
+  public function testMirrorEffect($toolkit_id, $toolkit_config, array $toolkit_settings) {
     $this->changeToolkit($toolkit_id, $toolkit_config, $toolkit_settings);
-  }
 
-  /**
-   * Mirror effect test.
-   *
-   * @depends testOnToolkits
-   */
-  public function testMirrorEffect() {
     // Test on the PNG test image.
     $original_uri = $this->getTestImageCopyUri('/files/image-test.png', 'simpletest');
 

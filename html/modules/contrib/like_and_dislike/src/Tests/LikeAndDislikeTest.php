@@ -107,6 +107,7 @@ class LikeAndDislikeTest extends WebTestBase {
       'enabled_types[comment][enabled]' => TRUE,
       'enabled_types[comment][bundle_info][bundles][test_comment_type]' => TRUE,
       'allow_cancel_vote' => TRUE,
+      'hide_vote_widget' => FALSE,
     ];
     $this->drupalPostForm('admin/config/search/votingapi/like_and_dislike', $edit, t('Save configuration'));
     $this->assertText('The configuration options have been saved.');
@@ -116,6 +117,7 @@ class LikeAndDislikeTest extends WebTestBase {
     $this->assertNoFieldChecked('edit-enabled-types-comment-bundle-info-bundles-comment');
     $this->assertFieldChecked('edit-enabled-types-comment-bundle-info-bundles-test-comment-type');
     $this->assertFieldChecked('edit-allow-cancel-vote');
+    $this->assertNoFieldChecked('edit-hide-vote-widget');
 
     // Verify there are new like and dislike permissions.
     $this->drupalGet('admin/people/permissions');
@@ -141,16 +143,16 @@ class LikeAndDislikeTest extends WebTestBase {
     // view mode and that it is disabled by default.
     $this->drupalGet('admin/structure/types/manage/article/display');
     $this->assertText('Like and dislike');
-    $this->assertOptionSelected('edit-fields-like-and-dislike-type', 'hidden');
+    $this->assertOptionSelected('edit-fields-like-and-dislike-region', 'hidden');
     // Same for teaser view mode.
     $this->drupalGet('admin/structure/types/manage/article/display/teaser');
     $this->assertText('Like and dislike');
-    $this->assertOptionSelected('edit-fields-like-and-dislike-type', 'hidden');
+    $this->assertOptionSelected('edit-fields-like-and-dislike-region', 'hidden');
 
     // Toggle on visibility of the extra field for default view mode.
-    $this->drupalPostForm('admin/structure/types/manage/article/display', ['fields[like_and_dislike][type]' => 'visible'], t('Save'));
+    $this->drupalPostForm('admin/structure/types/manage/article/display', ['fields[like_and_dislike][region]' => 'content'], t('Save'));
     $this->assertText('Your settings have been saved.');
-    $this->assertOptionSelected('edit-fields-like-and-dislike-type', 'visible');
+    $this->assertNoOptionSelected('edit-fields-like-and-dislike-region', 'hidden');
 
     // Verify that like and dislike are properly displayed as links.
     $node_id = $node->id();
@@ -163,12 +165,12 @@ class LikeAndDislikeTest extends WebTestBase {
 
     // Toggle off visibility of like and dislike for default view mode and on
     // for teaser mode, for nodes.
-    $this->drupalPostForm('admin/structure/types/manage/article/display', ['fields[like_and_dislike][type]' => 'hidden'], t('Save'));
+    $this->drupalPostForm('admin/structure/types/manage/article/display', ['fields[like_and_dislike][region]' => 'hidden'], t('Save'));
     $this->assertText('Your settings have been saved.');
-    $this->assertOptionSelected('edit-fields-like-and-dislike-type', 'hidden');
-    $this->drupalPostForm('admin/structure/types/manage/article/display/teaser', ['fields[like_and_dislike][type]' => 'visible'], t('Save'));
+    $this->assertOptionSelected('edit-fields-like-and-dislike-region', 'hidden');
+    $this->drupalPostForm('admin/structure/types/manage/article/display/teaser', ['fields[like_and_dislike][region]' => 'content'], t('Save'));
     $this->assertText('Your settings have been saved.');
-    $this->assertOptionSelected('edit-fields-like-and-dislike-type', 'visible');
+    $this->assertNoOptionSelected('edit-fields-like-and-dislike-region', 'hidden');
 
     // Verify that like and dislike are no longer showing up on default view
     // mode.
@@ -220,7 +222,7 @@ class LikeAndDislikeTest extends WebTestBase {
 
     // Toggle on visibility of like and dislike for the default view mode for
     // comments.
-    $this->drupalPostForm('admin/structure/comment/manage/test_comment_type/display', ['fields[like_and_dislike][type]' => 'visible'], t('Save'));
+    $this->drupalPostForm('admin/structure/comment/manage/test_comment_type/display', ['fields[like_and_dislike][region]' => 'content'], t('Save'));
     $this->assertText('Your settings have been saved.');
 
     // Verify that like and dislike are now showing for the comment.
@@ -236,13 +238,52 @@ class LikeAndDislikeTest extends WebTestBase {
     ];
     $this->drupalPostForm('admin/config/search/votingapi/like_and_dislike', $edit, t('Save configuration'));
     $this->assertText('The configuration options have been saved.');
-    $this->drupalPostForm('admin/structure/types/manage/article/display', ['fields[like_and_dislike][type]' => 'visible'], t('Save'));
+    $this->drupalPostForm('admin/structure/types/manage/article/display', ['fields[like_and_dislike][region]' => 'content'], t('Save'));
     $this->assertText('Your settings have been saved.');
 
     // Verify that both are showing up on the default view mode.
     $this->drupalGet('node/' . $node_id);
     $this->assertLikesAndDislikes('node', $node_id);
     $this->assertLikesAndDislikes('comment', $comment_id);
+
+    // Turn on hide vote widget permission.
+    $edit = [
+      'hide_vote_widget' => TRUE,
+    ];
+    $this->drupalPostForm('admin/config/search/votingapi/like_and_dislike', $edit, t('Save configuration'));
+    $this->assertText('The configuration options have been saved.');
+    $this->assertFieldChecked('edit-hide-vote-widget');
+
+    // Turn off dislike permission for node and comment.
+    $this->drupalGet('admin/people/permissions');
+    $edit = [
+      $user_role . '[add or remove dislike votes on article of node]' => FALSE,
+      $user_role . '[add or remove dislike votes on test_comment_type of comment]' => FALSE,
+    ];
+    $this->drupalPostForm(NULL, $edit, 'Save permissions');
+
+    // Verify that dislike icon is not showed in default view mode.
+    $this->drupalGet('node/' . $node_id);
+    $this->assertVotingIconExistence('node', $node_id, 'like', TRUE);
+    $this->assertVotingIconExistence('node', $node_id, 'dislike', FALSE);
+    $this->assertVotingIconExistence('comment', $comment_id, 'like', TRUE);
+    $this->assertVotingIconExistence('comment', $comment_id, 'dislike', FALSE);
+
+    // Turn off like permission for node and comment.
+    $this->drupalGet('admin/people/permissions');
+    $edit = [
+      $user_role . '[add or remove like votes on article of node]' => FALSE,
+      $user_role . '[add or remove like votes on test_comment_type of comment]' => FALSE,
+    ];
+    $this->drupalPostForm(NULL, $edit, 'Save permissions');
+
+    // Verify that both like and dislike icons are not showed in default view
+    // mode.
+    $this->drupalGet('node/' . $node_id);
+    $this->assertVotingIconExistence('node', $node_id, 'like', FALSE);
+    $this->assertVotingIconExistence('node', $node_id, 'dislike', FALSE);
+    $this->assertVotingIconExistence('node', $comment_id, 'dislike', FALSE);
+    $this->assertVotingIconExistence('comment', $comment_id, 'dislike', FALSE);
   }
 
   /**
@@ -259,7 +300,7 @@ class LikeAndDislikeTest extends WebTestBase {
     $this->assertFieldChecked('edit-enabled-types-user-enabled');
 
     // Make "like and dislike" component visible.
-    $edit = ['fields[like_and_dislike][type]' => 'visible'];
+    $edit = ['fields[like_and_dislike][region]' => 'content'];
     $this->drupalPostForm('admin/config/people/accounts/display', $edit, 'Save');
 
     // Go to user profile.
@@ -284,7 +325,7 @@ class LikeAndDislikeTest extends WebTestBase {
 
     // Assert that enabled_types is an empty Array.
     $enabled_types = \Drupal::config('like_and_dislike.settings')->get('enabled_types');
-    $this->assertEqual($enabled_types['user'], array());
+    $this->assertEqual($enabled_types['user'], []);
   }
 
   /**
@@ -339,9 +380,9 @@ class LikeAndDislikeTest extends WebTestBase {
     $this->drupalPostForm('admin/people/permissions', $edit, 'Save permissions');
 
     // Toggle on visibility of the extra fields.
-    $this->drupalPostForm('admin/structure/types/manage/article/display', ['fields[like_and_dislike][type]' => 'visible'], t('Save'));
+    $this->drupalPostForm('admin/structure/types/manage/article/display', ['fields[like_and_dislike][region]' => 'content'], t('Save'));
     $this->assertText('Your settings have been saved.');
-    $this->drupalPostForm('admin/structure/comment/manage/test_comment_type/display', ['fields[like_and_dislike][type]' => 'visible'], t('Save'));
+    $this->drupalPostForm('admin/structure/comment/manage/test_comment_type/display', ['fields[like_and_dislike][region]' => 'content'], t('Save'));
     $this->assertText('Your settings have been saved.');
 
     // Verify that the node and comment don't have any like or dislike.
@@ -461,7 +502,7 @@ class LikeAndDislikeTest extends WebTestBase {
     $this->drupalGet($url);
     // Assert that voted icon was updated.
     if (!$cancel) {
-      $this->assertEqual((string) $this->xpath("//*[@id=\"$vote_type-container-$entity_type_id-$entity_id\"]/a/@class")[0], "voted-$vote_type");
+      $this->assertEqual((string) $this->xpath("//*[@id=\"$vote_type-container-$entity_type_id-$entity_id\"]/a/@class")[0], "voted");
     }
   }
 
@@ -496,6 +537,24 @@ class LikeAndDislikeTest extends WebTestBase {
       $this->assertEqual((string) $this->xpath('//*[@id="' . $like_container_id . '"]/a/@class')[0], 'disable-status');
       $this->assertEqual((string) $this->xpath('//*[@id="' . $dislike_container_id . '"]/a/@class')[0], 'disable-status');
     }
+  }
+
+  /**
+   * Asserts voting icon existence on the page.
+   *
+   * @param string $entity_type_id
+   *   The entity type ID.
+   * @param string $entity_id
+   *   The entity ID.
+   * @param string $type
+   *   Type of the icon, can be 'like' or 'dislike'.
+   * @param bool $exist
+   *   TRUE if icon should exist, FALSE if not.
+   */
+  protected function assertVotingIconExistence($entity_type_id, $entity_id, $type, $exist) {
+    $container_id = $type . '-container-' . $entity_type_id . '-' . $entity_id;
+    $icon_exist = !empty($this->xpath('//*[@id="' . $container_id . '"]/a/@data-entity-type')[0]);
+    $this->assertEqual($icon_exist, $exist);
   }
 
 }

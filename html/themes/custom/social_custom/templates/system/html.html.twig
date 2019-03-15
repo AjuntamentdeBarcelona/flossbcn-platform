@@ -43,6 +43,9 @@
     <title>{{ head_title|safe_join(' | ') }}</title>
     <css-placeholder token="{{ placeholder_token|raw }}">
     <js-placeholder token="{{ placeholder_token|raw }}">
+    
+    
+    {% if false %}
     <!-- Global site tag (gtag.js) - Google Analytics -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-127626739-1"></script>
 	<script>
@@ -50,8 +53,32 @@
 	  function gtag(){dataLayer.push(arguments);}
 	  gtag('js', new Date());
 	
-	  gtag('config', 'UA-127626739-1');
+	  gtag('config', 'UA-128122256-1');
 	</script>
+	{% else %}
+	<!-- Matomo -->
+		
+		<script type="text/javascript">		
+			var _paq = window._paq || [];		
+			/* tracker methods like "setCustomDimension" should be called before "trackPageView" */		
+			_paq.push(["setCookieDomain", "*.flossbcn.org"]);		
+			_paq.push(['trackPageView']);		
+			_paq.push(['enableLinkTracking']);		
+			(function() {		
+			var u="//ajuntament.barcelona.cat/piwik/";		
+			_paq.push(['setTrackerUrl', u+'matomo.php']);		
+			_paq.push(['setSiteId', 'JyKmn3P4qE']);		
+			var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];		
+			g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);		
+			})();		
+		</script>
+		
+		<noscript><p><img src="//ajuntament.barcelona.cat/piwik/matomo.php?idsite=JyKmn3P4qE&amp;rec=1" style="border:0;" alt="" /></p></noscript>
+		
+		<!-- End Matomo Code -->
+	
+	
+	{% endif %}
 
     {% block custom_css %} {% endblock %}
   </head>

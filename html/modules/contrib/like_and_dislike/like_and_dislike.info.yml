@@ -5,9 +5,10 @@ package: Voting
 # core: 8.x
 configure: like_and_dislike.admin_settings
 dependencies:
-  - votingapi
-# Information added by Drupal.org packaging script on 2016-10-14
-version: '8.x-1.0-alpha2'
+  - votingapi:votingapi
+
+# Information added by Drupal.org packaging script on 2019-03-11
+version: '8.x-1.0-beta1'
 core: '8.x'
 project: 'like_and_dislike'
-datestamp: 1476452345
+datestamp: 1552326496

@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\flag\Kernel;
 
-use Drupal\Component\Utility\Unicode;
 use Drupal\flag\Entity\Flag;
 use Drupal\simpletest\ContentTypeCreationTrait;
 use Drupal\simpletest\NodeCreationTrait;

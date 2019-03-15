@@ -57,7 +57,6 @@ abstract class BackendTestBase extends KernelTestBase {
     parent::setUp();
 
     $this->installSchema('search_api', ['search_api_item']);
-    $this->installSchema('system', ['router']);
     $this->installSchema('user', ['users_data']);
     $this->installEntitySchema('entity_test_mulrev_changed');
     $this->installEntitySchema('search_api_task');
@@ -88,7 +87,9 @@ abstract class BackendTestBase extends KernelTestBase {
     $this->searchNoResults();
     $this->indexItems($this->indexId);
     $this->searchSuccess();
-    $this->checkFacets();
+    if ($this->getServer()->supportsFeature('search_api_facets')) {
+      $this->checkFacets();
+    }
     $this->checkSecondServer();
     $this->regressionTests();
     $this->clearIndex();

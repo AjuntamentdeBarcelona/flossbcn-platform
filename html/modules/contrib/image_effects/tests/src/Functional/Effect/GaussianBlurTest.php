@@ -12,7 +12,7 @@ use Drupal\Tests\image_effects\Functional\ImageEffectsTestBase;
 class GaussianBlurTest extends ImageEffectsTestBase {
 
   /**
-   * Test effect on required toolkits.
+   * Gaussian blur effect test.
    *
    * @param string $toolkit_id
    *   The id of the toolkit to set up.
@@ -23,16 +23,9 @@ class GaussianBlurTest extends ImageEffectsTestBase {
    *
    * @dataProvider providerToolkits
    */
-  public function testOnToolkits($toolkit_id, $toolkit_config, array $toolkit_settings) {
+  public function testGaussianBlurEffect($toolkit_id, $toolkit_config, array $toolkit_settings) {
     $this->changeToolkit($toolkit_id, $toolkit_config, $toolkit_settings);
-  }
 
-  /**
-   * Gaussian blur effect test.
-   *
-   * @depends testOnToolkits
-   */
-  public function testGaussianBlurEffect() {
     $effect = [
       'id' => 'image_effects_gaussian_blur',
       'data' => [

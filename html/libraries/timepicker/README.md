@@ -22,7 +22,7 @@ Include `jquery.timepicker.css` and `jquery.timepicker.min.js` in your page.
 
 ```options``` is an optional javascript object with parameters explained below.
 
-You can also set options as [data attributes](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Using_data_attributes) on the intput elements, like ```<input type="text" data-time-format="H:i:s" />```. Timepicker still needs to be initialized by calling ```$('#someElement').timepicker();```.
+You can also set options as [data attributes](https://developer.mozilla.org/en-US/docs/Web/Guide/HTML/Using_data_attributes) on the intput elements, like ```<input type="text" data-time-format="H:i:s" />```. Timepicker still needs to be initialized by calling ```$('#someElement').timepicker(options);```. Data attributes will override any conflicting initialization options.
 
 The defaults for all options are exposed through the ```$.fn.timepicker.defaults``` object. Properties changed in this object (same properties configurable through the constructor) will take effect for every instance created after the change.
 
@@ -43,7 +43,7 @@ Close the timepicker when the window is scrolled. (Replicates ```<select>``` beh
 *default: false*
 
 - **disableTimeRanges**  
-Disable selection of certain time ranges. Input is an array of time pairs, like ```[['3:00am', '4:30am'], ['5:00pm', '8:00pm']]``. The start of the interval will be disabled but the end won't.
+Disable selection of certain time ranges. Input is an array of time pairs, like ```[['3:00am', '4:30am'], ['5:00pm', '8:00pm']]```. The start of the interval will be disabled but the end won't.
 *default: []*
 
 - **disableTextInput**  
@@ -238,7 +238,7 @@ Called after the timepicker is shown.
 Called if an unparseable time string is manually entered into the timepicker input. Fires before ```change``` event.
 
 - **timeRangeError**  
-Called if a maxTime, minTime, or disableTimeRanges is set and an invalid time is manually entered into the timepicker input. Fires before ```change``` event.
+Called if maxTime and minTime, or disableTimeRanges is set and an invalid time is manually entered into the timepicker input. Fires before ```change``` event.
 
 The `selectTime` and `hideTimepicker` events fire slightly differently when using the `useSelect` option. See https://github.com/jonthornton/jquery-timepicker/issues/427 for more information.
 
@@ -270,11 +270,11 @@ The `ui-timepicker-positioned-top` class will be applied only when the dropdown 
 
 ## Packaging
 
-Install from [Bower](http://bower.io/) as ```jquery-timepicker-jt```.
+NPM [npm install --save timepicker](https://www.npmjs.com/package/timepicker)
+
+CDN [https://cdn.jsdelivr.net/npm/timepicker/](https://cdn.jsdelivr.net/npm/timepicker/)  [![jsDelivr Hits](https://data.jsdelivr.com/v1/package/npm/timepicker/badge)](https://www.jsdelivr.com/package/npm/timepicker)
 
 An AngularJS directive is available at https://github.com/Recras/angular-jquery-timepicker
-
-Available via CDN at [https://cdnjs.com/libraries/jquery-timepicker](https://cdnjs.com/libraries/jquery-timepicker).
 
 Help
 ----

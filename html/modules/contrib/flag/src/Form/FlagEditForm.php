@@ -2,7 +2,6 @@
 
 namespace Drupal\flag\Form;
 
-use Drupal\flag\Form\FlagFormBase;
 use Drupal\Core\Form\FormStateInterface;
 
 /**

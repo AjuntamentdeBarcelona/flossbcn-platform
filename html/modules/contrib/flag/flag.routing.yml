@@ -119,11 +119,3 @@ entity.flag.reset:
     _title: 'Reset Flag?'
   requirements:
     _permission: 'administer flags'
-
-flag.clearall:
-  path: '/admin/structure/flags/clear'
-  defaults:
-    _form: '\Drupal\flag\Form\ClearAllForm'
-    _title: 'Prepare Uninstall'
-  requirements:
-    _permission: 'administer flags'

@@ -62,7 +62,7 @@ function leaflet_cluster_view_generate_map(drupalSettings) {
 
 
 
-  L.tileLayer( 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  L.tileLayer( 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
    subdomains: ['a','b','c']
   }).addTo( map );
@@ -83,7 +83,7 @@ function leaflet_cluster_view_generate_map(drupalSettings) {
       url:pathAjax + "?type=" + parametertypeview + '&name=' + name + '&ambits=' + ambits,
       success: function(data){
         var markers = data;
-        console.log(markers);
+       // console.log(markers);
         for ( var i = 0; i < markers.length; ++i )
         {
 	        var type = 'Event';
@@ -111,7 +111,7 @@ function leaflet_cluster_view_generate_map(drupalSettings) {
   });
   
   function onClickMarkerCustom(e) {
-	  console.log(e.target.options.alt);
+	  //console.log(e.target.options.alt);
   }
 }
 

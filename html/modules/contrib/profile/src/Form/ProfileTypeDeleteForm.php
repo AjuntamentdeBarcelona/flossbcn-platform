@@ -15,6 +15,7 @@ class ProfileTypeDeleteForm extends EntityDeleteForm {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
     $num_profiles = $this->entityTypeManager->getStorage('profile')->getQuery()
+      ->accessCheck(FALSE)
       ->condition('type', $this->entity->id())
       ->count()
       ->execute();

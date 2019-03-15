@@ -8,6 +8,9 @@ field.formatter.settings.private_message_thread_member_formatter:
     entity_display_mode:
       type: string
       label: 'Display Mode'
+    members_prefix:
+      type: string
+      label: 'Members list prefix'
 
 field.formatter.settings.private_message_thread_message_formatter:
   type: mapping

@@ -33,7 +33,7 @@
 	    '#type' => 'select',
 	    '#title' => $this->t('Type'),
 	    '#empty_value' => '',
-	    '#empty_option' => '- Select a value -',
+	    '#empty_option' => $this->t(  '- Select a value -' ),
 	    '#default_value' => (isset($values['my_select']) ? $values['my_select'] : ''),
 	    '#options' => [
 	      'entities' => t('Entities'),

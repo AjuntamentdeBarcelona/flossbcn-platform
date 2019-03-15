@@ -6,8 +6,8 @@ package: Testing
 dependencies:
   - image_effects:image_effects
 
-# Information added by Drupal.org packaging script on 2017-04-17
-version: '8.x-1.0'
+# Information added by Drupal.org packaging script on 2019-01-19
+version: '8.x-2.3'
 core: '8.x'
 project: 'image_effects'
-datestamp: 1492431845
+datestamp: 1547928184

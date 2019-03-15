@@ -24,7 +24,8 @@ use Drupal\user\UserInterface;
  *    singular = "@count flagging",
  *    plural = "@count flaggings",
  *  ),
- *  bundle_label = @Translation("Flagging"),
+ *  bundle_label = @Translation("Flag"),
+ *  admin_permission = "administer flaggings",
  *  handlers = {
  *    "storage" = "Drupal\flag\Entity\Storage\FlaggingStorage",
  *    "storage_schema" = "Drupal\flag\Entity\Storage\FlaggingStorageSchema",
@@ -57,7 +58,7 @@ class Flagging extends ContentEntityBase implements FlaggingInterface {
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $values, $entity_type, $bundle = FALSE, $translations = array()) {
+  public function __construct(array $values, $entity_type, $bundle = FALSE, $translations = []) {
     if (isset($values['entity_id'])) {
       $values['flagged_entity'] = $values['entity_id'];
     }

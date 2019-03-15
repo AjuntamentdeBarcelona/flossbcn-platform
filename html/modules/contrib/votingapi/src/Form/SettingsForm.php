@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Configures administrative settings for VotingAPI.
- */
-
 namespace Drupal\votingapi\Form;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
@@ -148,20 +143,18 @@ class SettingsForm extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $config = $this->config('votingapi.settings');
-
     $settings = [
       'anonymous_window',
       'user_window',
       'calculation_schedule',
       'delete_everywhere',
     ];
-
     foreach ($settings as $setting) {
       $config->set($setting, $form_state->getValue($setting));
     }
-
     $config->save();
 
     parent::submitForm($form, $form_state);
   }
+
 }

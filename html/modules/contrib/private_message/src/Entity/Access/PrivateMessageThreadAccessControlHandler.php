@@ -37,7 +37,7 @@ class PrivateMessageThreadAccessControlHandler extends EntityAccessControlHandle
       }
     }
 
-    return AccessResult::forbidden();
+    return AccessResult::neutral();
   }
 
   /**

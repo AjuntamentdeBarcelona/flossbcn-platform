@@ -2,6 +2,8 @@
 
 namespace Drupal\flag\Tests;
 
+use Drupal\Component\Utility\Html;
+use Drupal\Component\Utility\Xss;
 use Drupal\flag\Entity\Flag;
 
 /**
@@ -84,13 +86,13 @@ trait FlagCreateTrait {
       'label' => $this->randomString(),
       'entity_type' => 'node',
       'bundles' => array_keys(\Drupal::service('entity_type.bundle.info')->getBundleInfo('node')),
-      'flag_short' => $this->randomString(),
-      'unflag_short' => $this->randomString(),
-      'unflag_denied_text' => $this->randomString(),
-      'flag_long' => $this->randomString(16),
-      'unflag_long' => $this->randomString(16),
-      'flag_message' => $this->randomString(32),
-      'unflag_message' => $this->randomString(32),
+      'flag_short' => $this->randomHTMLString(),
+      'unflag_short' => $this->randomHTMLString(),
+      'unflag_denied_text' => $this->randomHTMLString(),
+      'flag_long' => $this->randomHTMLString(16),
+      'unflag_long' => $this->randomHTMLString(16),
+      'flag_message' => $this->randomHTMLString(32),
+      'unflag_message' => $this->randomHTMLString(32),
       'flag_type' => $this->getFlagType('node'),
       'link_type' => 'reload',
       'flagTypeConfig' => [
@@ -109,7 +111,7 @@ trait FlagCreateTrait {
       case 'comment':
         $default = array_merge($default, [
           'flagTypeConfig' => [
-            'access_author' => $this->randomString(),
+            'access_author' => $this->randomHTMLString(),
           ],
         ]);
         break;
@@ -117,8 +119,8 @@ trait FlagCreateTrait {
       case 'confirm':
         $default = array_merge($default, [
           'linkTypeConfig' => [
-            'flag_confirmation' => $this->randomString(),
-            'unflag_confirmation' => $this->randomString(),
+            'flag_confirmation' => $this->randomHTMLString(),
+            'unflag_confirmation' => $this->randomHTMLString(),
           ],
         ]);
         break;
@@ -126,9 +128,9 @@ trait FlagCreateTrait {
       case 'field_entry':
         $default = array_merge($default, [
           'linkTypeConfig' => [
-            'flag_confirmation' => $this->randomString(),
-            'unflag_confirmation' => $this->randomString(),
-            'edit_flagging' => $this->randomString(),
+            'flag_confirmation' => $this->randomHTMLString(),
+            'unflag_confirmation' => $this->randomHTMLString(),
+            'edit_flagging' => $this->randomHTMLString(),
           ],
         ]);
         break;
@@ -176,6 +178,28 @@ trait FlagCreateTrait {
 
     // Return the generic entity flag type plugin ID.
     return 'entity';
+  }
+
+  /**
+   * Generates an HTML-safe random string.
+   *
+   * To generate strings which can be located in FunctionalJavascript tests.
+   * In tests using 'css' queries that use the 'contains()' selector we need to
+   * remove all white space characters.
+   *
+   * @param int $length
+   *   The length of the string to generate.
+   *
+   * @return string
+   *   A random string of HTML-safe characters.
+   */
+  protected function randomHTMLString($length = 8) {
+    // A safe string.
+   $str = Html::decodeEntities(Xss::filter($this->randomString($length * 2), []));
+   // Remove all whitespaces.
+   $no_space = preg_replace('/\s+/', '', $str);
+   // Trim to the required length;
+   return substr($no_space, 0, $length);
   }
 
 }

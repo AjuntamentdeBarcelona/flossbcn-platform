@@ -7,9 +7,9 @@
   'use strict';
 
   Drupal.behaviors.dropdownLanguagesSelector = {
-    attach: function(context, settings) {
+    attach: function (context, settings) {
       $('.dropdown-language-item .active-language', context).once('dropdown-language-selector')
-        .click(function(e) {
+        .click(function (e) {
           var $wrapper = $(this).closest('.dropbutton-wrapper');
           if ($wrapper.length > 0) {
             e.preventDefault();

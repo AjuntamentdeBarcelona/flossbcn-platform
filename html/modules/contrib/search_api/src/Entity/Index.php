@@ -18,7 +18,7 @@ use Drupal\search_api\SearchApiException;
 use Drupal\search_api\ServerInterface;
 use Drupal\search_api\Tracker\TrackerInterface;
 use Drupal\search_api\Utility\Utility;
-use Drupal\user\TempStoreException;
+use Drupal\Core\TempStore\TempStoreException;
 use Drupal\views\Views;
 
 /**
@@ -49,6 +49,7 @@ use Drupal\views\Views;
  *       "disable" = "Drupal\search_api\Form\IndexDisableConfirmForm",
  *       "reindex" = "Drupal\search_api\Form\IndexReindexConfirmForm",
  *       "clear" = "Drupal\search_api\Form\IndexClearConfirmForm",
+ *       "rebuild_tracker" = "Drupal\search_api\Form\IndexRebuildTrackerConfirmForm",
  *     },
  *   },
  *   admin_permission = "administer search_api",
@@ -88,6 +89,7 @@ use Drupal\views\Views;
  */
 class Index extends ConfigEntityBase implements IndexInterface {
 
+  use InstallingTrait;
   use LoggerTrait;
 
   /**
@@ -913,15 +915,19 @@ class Index extends ConfigEntityBase implements IndexInterface {
     if ($this->hasValidTracker() && !$this->isReadOnly()) {
       $tracker = $this->getTrackerInstance();
       $next_set = $tracker->getRemainingItems($limit, $datasource_id);
+      if (!$next_set) {
+        return 0;
+      }
       $items = $this->loadItemsMultiple($next_set);
-      if ($items) {
-        try {
-          return count($this->indexSpecificItems($items));
-        }
-        catch (SearchApiException $e) {
-          $variables['%index'] = $this->label();
-          $this->logException($e, '%type while trying to index items on index %index: @message in %function (line %line of %file)', $variables);
-        }
+      if (!$items) {
+        return 0;
+      }
+      try {
+        return count($this->indexSpecificItems($items));
+      }
+      catch (SearchApiException $e) {
+        $variables['%index'] = $this->label();
+        $this->logException($e, '%type while trying to index items on index %index: @message in %function (line %line of %file)', $variables);
       }
     }
     return 0;
@@ -1061,15 +1067,8 @@ class Index extends ConfigEntityBase implements IndexInterface {
       }
       $this->getTrackerInstance()->$tracker_method($item_ids);
       if (!$this->isReadOnly() && $this->getOption('index_directly') && !$this->batchTracking) {
-        try {
-          $items = $this->loadItemsMultiple($item_ids);
-          if ($items) {
-            $this->indexSpecificItems($items);
-          }
-        }
-        catch (SearchApiException $e) {
-          $this->logException($e);
-        }
+        \Drupal::getContainer()->get('search_api.post_request_indexing')
+          ->registerIndexingOperation($this->id(), $item_ids);
       }
     }
   }
@@ -1109,22 +1108,43 @@ class Index extends ConfigEntityBase implements IndexInterface {
    * {@inheritdoc}
    */
   public function clear() {
-    if ($this->status()) {
-      // Only invoke the hook if we actually did something.
-      $invoke_hook = FALSE;
-      if (!$this->isReindexing()) {
-        $invoke_hook = TRUE;
-        $this->setHasReindexed();
-        $this->getTrackerInstance()->trackAllItemsUpdated();
-      }
-      if (!$this->isReadOnly()) {
-        $invoke_hook = TRUE;
-        $this->getServerInstance()->deleteAllIndexItems($this);
-      }
-      if ($invoke_hook) {
-        \Drupal::moduleHandler()->invokeAll('search_api_index_reindex', [$this, !$this->isReadOnly()]);
-      }
+    if (!$this->status()) {
+      return;
     }
+
+    // Only invoke the hook if we actually did something.
+    $invoke_hook = FALSE;
+    if (!$this->isReindexing()) {
+      $invoke_hook = TRUE;
+      $this->setHasReindexed();
+      $this->getTrackerInstance()->trackAllItemsUpdated();
+    }
+    if (!$this->isReadOnly()) {
+      $invoke_hook = TRUE;
+      $this->getServerInstance()->deleteAllIndexItems($this);
+    }
+    if ($invoke_hook) {
+      \Drupal::moduleHandler()
+        ->invokeAll('search_api_index_reindex', [$this, !$this->isReadOnly()]);
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function rebuildTracker() {
+    if (!$this->status()) {
+      return;
+    }
+
+    $index_task_manager = \Drupal::getContainer()
+      ->get('search_api.index_task_manager');
+    $index_task_manager->stopTracking($this);
+    $index_task_manager->startTracking($this);
+    $this->setHasReindexed();
+    \Drupal::moduleHandler()
+      ->invokeAll('search_api_index_reindex', [$this, FALSE]);
+    $index_task_manager->addItemsBatch($this);
   }
 
   /**
@@ -1182,9 +1202,10 @@ class Index extends ConfigEntityBase implements IndexInterface {
    * {@inheritdoc}
    */
   public function preSave(EntityStorageInterface $storage) {
-    // If we are in the process of syncing, we shouldn't change any entity
+    // If we are in the process of syncing, or in the process of installing
+    // configuration from an extension, we shouldn't change any entity
     // properties (or other configuration).
-    if ($this->isSyncing()) {
+    if ($this->isSyncing() || $this->isInstallingFromExtension()) {
       parent::preSave($storage);
       return;
     }
@@ -1544,8 +1565,8 @@ class Index extends ConfigEntityBase implements IndexInterface {
       \Drupal::cache('discovery')->delete('views:wizard');
     }
 
-    /** @var \Drupal\user\SharedTempStore $temp_store */
-    $temp_store = \Drupal::service('user.shared_tempstore')->get('search_api_index');
+    /** @var \Drupal\Core\TempStore\SharedTempStore $temp_store */
+    $temp_store = \Drupal::service('tempstore.shared')->get('search_api_index');
     foreach ($entities as $entity) {
       try {
         $temp_store->delete($entity->id());
