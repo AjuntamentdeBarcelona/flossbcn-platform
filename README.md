@@ -18,6 +18,7 @@ To install flossbcn follow the following steps:
    ```git clone https://github.com/AjuntamentdeBarcelona/flossbcn-platform.git flossbcn```
 
  - Point your Webserver to host the html directory
+ - Execute command "composer install"
  - Install the Drupal
  - Enjoy!
  
