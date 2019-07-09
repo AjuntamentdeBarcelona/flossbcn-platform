@@ -1,0 +1,20 @@
+name: Social
+type: profile
+description: 'Open Social install profile.'
+core: '8.x'
+version: '8.x-3.13'
+project: social
+
+dependencies:
+  - drupal:config
+  - drupal:system
+  - drupal:user
+  - drupal:breakpoint
+  - features:features
+themes:
+  - seven
+  - socialbase
+  - socialblue
+features: true
+distribution:
+  name: Open Social

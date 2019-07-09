@@ -1,20 +1,24 @@
-This is a composer based installer for the [Open Social distribution](http://www.drupal.org/project/social).
+# Flossbcn
+
+Flossbcn is a ready-to-use solution for online communities. Flossbcn is made with the Drupal structure and platform. Social network. Flossbcn is a foundation for building a flexible social community to share knowledge, work together and foster dialogue.
+
+Flossbcn is a great complement for external communities, knowledge and ideation. The software is ideal for NGOs, governments and hundreds of large and small organizations to connect with their members, volunteers, employees and customers.
 
 # Prerequisites
+ - PHP 7.1 or higher
+ - MySQL/MariaDB
+ - Apache/Nginx/IIS or anyother php web server.
+ - Composer
 
-1. [Composer](https://getcomposer.org/download/)
+# Installation of flossbcn
+To install flossbcn follow the following steps:
 
-It's just composer, isn't it awesome? :)
+ - Clone the repository
+ 
+   ```git clone https://github.com/AjuntamentdeBarcelona/flossbcn-platform.git flossbcn```
 
-## Installation of Open Social
-
-```
-composer create-project goalgorilla/social_template:dev-master DIRECTORY --no-interaction
-```
-
-Composer will create a new directory called DIRECTORY. Inside you will find the html directory with the entire code base of [Open Social distribution](http://www.drupal.org/project/social). You should be able to install it like any other Drupal site. 
-
-## Learn more about Composer for Drupal
-
-Checkout this [presentation](https://docs.google.com/presentation/d/1gxcxT6o47xVrfsZ7ZSQKjBRT-gfE54A1Z9kjvvGHwCo/edit#slide=id.p) from @ModsUnraveled.
-# flossbcn
+ - Point your Webserver to host the html directory
+ - Execute command "composer update"
+ - Install the Drupal
+ - Enjoy!
+ 
