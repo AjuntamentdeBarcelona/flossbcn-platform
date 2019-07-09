@@ -1,0 +1,5 @@
+name: 'Security_extension'
+type: module
+description: 'Security_extension'
+core: 8.x
+package: 'Drauta'

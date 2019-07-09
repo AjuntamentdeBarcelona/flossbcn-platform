@@ -1,0 +1,97 @@
+<?php 
+	use Drupal\security_extension\CrawlerDetect;
+	
+	function security_extension_config() {
+		return [
+			'forms' => [
+				'user-register-form' => 'user-register-form'
+			]
+		];
+	}
+	function security_extension_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+		$config = security_extension_config();
+		$forms = $config['forms'];
+		foreach ($forms as $key => $value) {
+			if (strpos($form['#id'], $key) !== false) {
+				//$nombre_usuario = 'dadasdas1203456';
+				//kint(security_extension_by_name($nombre_usuario));
+				
+				
+				$form['custom_value'] = array(
+				    '#title' => t('Some Text'),
+				    '#type' => 'hidden',
+				    '#default_value' => time(),
+				  );
+				//kint($form);  
+				$form['#validate'][] = 'security_extension_validate_custom';
+			}
+		}
+	}
+	
+	function security_extension_validate_custom($form, \Drupal\Core\Form\FormStateInterface &$form_state) {		
+		$values = $form_state->getValues();
+		// Verify per time.
+		$isbot = security_extension_time();
+				
+		// Verify crawler.		
+		if(!$isbot) {
+			$isbot = security_extension_crawlerdetect();
+		}
+		
+		// Nombre.
+		if(!$isbot) {
+			if(array_key_exists('name', $values)) {
+				$isbot = security_extension_by_name($values['name']);
+			}			
+		}
+		
+			
+		
+		if($isbot) {
+			$form_state->setError($form, t('You are not a human.')); 
+		}
+		
+	}
+	
+	function security_extension_time() {
+		if(!empty($_SERVER['REQUEST_TIME']) && !empty($_POST['custom_value'])) {
+			$tiempo = intval($_SERVER['REQUEST_TIME']) - intval($_POST['custom_value']);		
+			if($tiempo < 5) {
+				return TRUE;
+			}	
+		}		
+		return FALSE;
+	}
+	
+	function security_extension_crawlerdetect() {
+		$CrawlerDetect = new CrawlerDetect;
+		if($CrawlerDetect->isCrawler()) {
+			return TRUE;
+		}
+		return FALSE;
+	}
+	
+	function security_extension_by_name($text) {
+		$numeros_totales = 0;
+		$numeros_finales_seguidos = 0;
+		$array_name = array_reverse(str_split($text));
+		
+		$numero_anterior = FALSE;	
+		if(is_numeric($array_name[0])) {
+			$numero_anterior = TRUE;
+		}
+		
+		foreach($array_name as $value) {
+			if(is_numeric($value)) {
+				$numeros_totales = $numeros_totales + 1;
+				if($numero_anterior) {
+					$numeros_finales_seguidos = $numeros_finales_seguidos + 1;
+				}
+			}
+		}		
+		
+		if($numeros_finales_seguidos > 2 || $numeros_totales > 6) {
+			return TRUE;
+		}
+		
+	}

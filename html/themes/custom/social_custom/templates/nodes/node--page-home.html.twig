@@ -60,6 +60,15 @@
 		   </div>
 		   {% set count = count + 1 %}
 		 {% endfor %}
+     {% if content.field_destacar_temes_esdevenimen | render %}
+     {% set count = 0 %}
+     {% for img in content.field_destacar_temes_esdevenimen['#items'] %}
+		   <div class="col4 col">
+		     {{ content.field_destacar_temes_esdevenimen[count] }}
+		   </div>
+		   {% set count = count + 1 %}
+		 {% endfor %}
+		{% endif %}
 		</div>
 		{% endif %}
 		{# FIN DESTACADOS #}

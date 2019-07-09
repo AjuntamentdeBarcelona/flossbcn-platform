@@ -1,0 +1,65 @@
+<?php
+	
+    use Drupal\group\Entity\GroupContent;
+
+    function drauta_add_user_group_floss_user_insert(Drupal\Core\Entity\EntityInterface $entity) {
+		$id_user = $entity->id();	
+		drauta_add_user_group_floss_add_user_in_group(4, $id_user);
+	}
+	
+	function drauta_add_user_group_floss_add_user_in_group($group_id, $user_id) {		    
+	    $account = \Drupal\user\Entity\User::load($user_id);
+	    $group_entity = \Drupal::entityTypeManager()->getStorage('group')->load($group_id);		   
+	    $group_entity->addMember($account);
+	    $group_entity->save();      
+	}
+	
+	function drauta_add_user_group_floss_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id)  {
+		$entro = FALSE;
+		$formularios_afectados = [
+			'group_public_group_add_form' => 1,
+			'group_public_group_edit_form' => 1,
+			'group_entities_add_form' => 1,
+			'group_entities_edit_form' => 1
+		];
+		
+		if(array_key_exists($form_id, $formularios_afectados)) {
+			$form['#validate'][] = 'drauta_add_user_group_floss_validar';
+		}
+		
+	}
+	
+	function drauta_add_user_group_floss_validar($form, \Drupal\Core\Form\FormStateInterface &$form_state){
+		$id_form = $form['#form_id'];		
+		$values = $form_state->getValues();
+		$title = $values['label'][0]['value'];
+		
+		$seguir = FALSE;		
+		$editar = FALSE;
+		
+		if (strpos($id_form, '_edit_form') !== false) {
+			$editar = TRUE;
+		}
+		
+		$db = \Drupal::database();
+		$query = $db->select('groups_field_data','gfd');
+		$query->fields('gfd', array('id'));
+		$query->condition('gfd.label', $title, '='); 
+		$query->range(0,1);
+		$result = $query->execute();
+		$objeto_avisos = $result->fetchAssoc();
+		
+		if($objeto_avisos == FALSE) {
+			$seguir = TRUE;
+		} elseif($editar) {
+			$current_nid = $form_state->getFormObject()->getEntity()->id();
+			if($current_nid == $objeto_avisos['id']) {
+				$seguir = TRUE;
+			}			
+		}
+		
+		if(!$seguir) {
+			$form_state->setError($form, t('A group with this name already exists.')); 
+		}
+		
+	}	

@@ -25,7 +25,9 @@ function social_custom_preprocess_html(&$variables) {
 	}
 }
 
-
+function social_custom_preprocess_views_view(&$variables) {
+	$variables['route_name'] = \Drupal::routeMatch()->getRouteName();
+}
 function social_custom_preprocess_page(&$variables) {
 	/* $route_name = \Drupal::routeMatch()->getRouteName();	
 	$parameters = \Drupal::routeMatch()->getParameters(); 

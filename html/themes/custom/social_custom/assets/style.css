@@ -641,6 +641,14 @@ body:not(.user-logged-in) .flag {
 	margin-top: 15px;
 }
 
+a.active-entry {
+	background-color: #4d4d4d!important;
+	color: white!important;
+	font-weight: bold!important;
+}
+.page-node-type-page-home .token-visual-drauta .img-inside-100 img{
+  height: 108px;
+}
 
 
 

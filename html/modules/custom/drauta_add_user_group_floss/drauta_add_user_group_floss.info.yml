@@ -1,0 +1,5 @@
+name: Drauta add user group floss
+description: Drauta add user group floss.
+core: 8.x
+package: Custom
+type: module
