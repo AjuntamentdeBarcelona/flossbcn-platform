@@ -2,11 +2,9 @@
 
 namespace Drupal\profile\Access;
 
-use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Routing\Access\AccessInterface;
 use Drupal\Core\Session\AccountInterface;
-use Symfony\Component\Routing\Route;
 use Drupal\profile\Entity\ProfileTypeInterface;
 
 /**
@@ -34,8 +32,6 @@ class ProfileAccessCheck implements AccessInterface {
   /**
    * Checks access to the profile add page for the profile type.
    *
-   * @param \Symfony\Component\Routing\Route $route
-   *   The route to check against.
    * @param \Drupal\Core\Session\AccountInterface $account
    *   The currently logged in account.
    * @param \Drupal\Core\Session\AccountInterface $user
@@ -46,14 +42,17 @@ class ProfileAccessCheck implements AccessInterface {
    * @return bool|\Drupal\Core\Access\AccessResultInterface
    *   The access result.
    */
-  public function access(Route $route, AccountInterface $account, AccountInterface $user, ProfileTypeInterface $profile_type) {
-    if ($account->hasPermission('administer profile types')) {
-      return AccessResult::allowed()->cachePerPermissions();
-    }
-    $own_any = ($account->id() == $user->id()) ? 'own' : 'any';
-    $operation = ($profile_type->getMultiple()) ? 'view' : 'update';
-
-    return AccessResult::allowedIfHasPermission($account, "$operation $own_any {$profile_type->id()} profile");
+  public function access(AccountInterface $account, AccountInterface $user, ProfileTypeInterface $profile_type) {
+    // Create a stub profile to pass to entity access.
+    $profile_storage = $this->entityTypeManager->getStorage('profile');
+    // Create a stubbed Profile entity for access checks.
+    $profile_stub = $profile_storage->create([
+      'type' => $profile_type->id(),
+      'uid' => $user->id(),
+    ]);
+    $operation = $profile_type->allowsMultiple() ? 'view' : 'update';
+    $access_handler = $this->entityTypeManager->getAccessControlHandler('profile');
+    return $access_handler->access($profile_stub, $operation, $account, TRUE);
   }
 
 }

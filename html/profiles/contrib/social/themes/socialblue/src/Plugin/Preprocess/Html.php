@@ -20,12 +20,11 @@ class Html extends HtmlBase {
     parent::preprocess($variables, $hook, $info);
 
     $variables['colors'] = [];
-    if(!empty(color_get_palette($variables['theme']['name']))) {
-        foreach (color_get_palette($variables['theme']['name']) as $key => $value) {
-          $key = str_replace('-', '_', $key);
 
-          $variables['colors'][$key] = $value;
-      }
+    foreach (color_get_palette($variables['theme']['name']) as $key => $value) {
+      $key = str_replace('-', '_', $key);
+
+      $variables['colors'][$key] = $value;
     }
 
   }

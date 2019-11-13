@@ -55,6 +55,12 @@
     min-height: 410px;
   }
 
+  &.small {
+    @include for-tablet-portrait-up {
+      min-height: 206px;
+    }
+  }
+
   // this excludes the social_landing page hero section
   > .hero-footer {
     @include for-tablet-portrait-up {
@@ -64,8 +70,17 @@
   }
 
 }
+
+
+/* IE11 */
 @media all and (-ms-high-contrast:none) {
-  *::-ms-backdrop, .cover-wrap { height: 410px; } /* IE11 */
+  *::-ms-backdrop, .cover-wrap { height: 410px; }
+
+  *::-ms-backdrop, .cover-wrap.small { height: 206px; }
+
+  *::-ms-backdrop, .paragraph--hero .cover-wrap { height: 350px; }
+
+  *::-ms-backdrop, .paragraph--hero-small .cover-wrap { height: 206px; }
 }
 
 // anon homepage hero

@@ -11,10 +11,8 @@ Feature: Group access roles
       | Group User Two | group_user_2@example.com | 1      | sitemanager        |
   # Create a closed group to test the leaving of a closed group
     When I am logged in as "Group User One"
-    And I am on "user"
-    And I click "Groups"
-    And I click "Add a group"
-    Then I click radio button "Closed group This is a closed group. Users can only join by invitation and all content added in this group will be hidden for non members." with the id "edit-group-type-closed-group"
+    And I am on "group/add"
+    Then I click radio button "Closed group This is a closed group. Users can only join by invitation and the content in the group is hidden from non members." with the id "edit-group-type-closed-group"
     And I press "Continue"
     When I fill in "Title" with "Test closed group 3"
     And I fill in the "edit-field-group-description-0-value" WYSIWYG editor with "Description text"
@@ -30,18 +28,15 @@ Feature: Group access roles
     Then I should see "Test closed group 3" in the "Main content"
 
   # Create a topic inside the closed group
-    When I am on "user"
-    And I click "Groups"
-    And I click "Test closed group 3"
-    When I click "Topics"
-    And I should see the link "Create Topic" in the "Sidebar second"
-    And I click "Create Topic"
-    When I fill in the following:
+    Given I click "Topics"
+    Then I should see the link "Create Topic" in the "Sidebar second"
+    When I click "Create Topic"
+    And I fill in the following:
       | Title | Test closed group 3 topic |
     And I fill in the "edit-body-0-value" WYSIWYG editor with "Body description text"
     And I click radio button "Discussion"
     And I press "Save"
-    And I should see "Test closed group 3 topic"
+    Then I should see "Test closed group 3 topic"
 
   # As a outsider with the role CM+ I should be able to see and manage content from a closed group
     Given I am logged in as a user with the "contentmanager" role
@@ -63,14 +58,13 @@ Feature: Group access roles
     And I click "Test closed group 3"
 
   # DS-647 As a LU I want to join a group
-    Then I should see the link "Join" in the "Hero block"
+    Then I should see the link "Join"
     And I click "Join"
     And I should see "Join group Test closed group 3"
     And I should see the button "Cancel"
-    And I should see the button "Join group"
     And I press "Join group"
-    And I am on "user"
-    And I click "Groups"
+    And I click the xth "0" element with the css ".navbar-nav .profile"
+    And I click "My groups"
     Then I click "Test closed group 3"
     And I should see the button "Joined"
 
@@ -80,7 +74,7 @@ Feature: Group access roles
   # As a CM+ member of this closed group I want to leave the group
     When I click "Test closed group 3"
     Then I should see the button "Joined"
-    And I click the element with css selector "#hero .dropdown-toggle"
+    And I press "Joined"
     And I should see the link "Leave group"
     And I click "Leave group"
     And I should see "This action cannot be undone."

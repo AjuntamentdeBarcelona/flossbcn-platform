@@ -8,6 +8,7 @@ use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityChangedTrait;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\activity_creator\ActivityInterface;
+use Drupal\flag\Entity\Flagging;
 use Drupal\user\UserInterface;
 
 /**
@@ -193,6 +194,26 @@ class Activity extends ContentEntityBase implements ActivityInterface {
   }
 
   /**
+   * Get related entity.
+   *
+   * @return \Drupal\Core\Entity
+   *   Returns NULL or Entity object.
+   */
+  public function getRelatedEntity() {
+
+    $related_object = $this->get('field_activity_entity')->getValue();
+    if (!empty($related_object)) {
+      $target_type = $related_object['0']['target_type'];
+      $target_id = $related_object['0']['target_id'];
+      $entity_storage = $this->entityTypeManager()->getStorage($target_type);
+      $entity = $entity_storage->load($target_id);
+      return $entity;
+    }
+    return NULL;
+
+  }
+
+  /**
    * Get related entity url.
    *
    * @return \Drupal\Core\Url|string
@@ -221,9 +242,29 @@ class Activity extends ContentEntityBase implements ActivityInterface {
           $target_id = $group_content->getEntity()->id();
         }
       }
+      elseif ($target_type === 'event_enrollment') {
+        $entity_storage = \Drupal::entityTypeManager()
+          ->getStorage($target_type);
+        $entity = $entity_storage->load($target_id);
 
-      $entity = entity_load($target_type, $target_id);
-      if (!empty($entity)) {
+        // Lets make the Event node the target for Enrollments.
+        if ($entity !== NULL) {
+          /** @var \Drupal\social_event\Entity\EventEnrollment $entity */
+          $event_id = $entity->getFieldValue('field_event', 'target_id');
+          $target_id = $event_id;
+          $target_type = 'node';
+        }
+      }
+      elseif ($target_type === 'flagging') {
+        $flagging = Flagging::load($target_id);
+        $target_type = $flagging->getFlaggableType();
+        $target_id = $flagging->getFlaggableId();
+      }
+
+      $entity_storage = \Drupal::entityTypeManager()
+        ->getStorage($target_type);
+      $entity = $entity_storage->load($target_id);
+      if ($entity !== NULL) {
         /** @var \Drupal\Core\Url $link */
         $link = $entity->urlInfo('canonical');
       }

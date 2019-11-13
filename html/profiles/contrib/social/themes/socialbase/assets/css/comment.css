@@ -108,6 +108,10 @@ a[id^="comment-"] {
   display: none;
 }
 
+.comment-form .form-managed-file {
+  padding-right: 40px;
+}
+
 .comment-form textarea.form-control {
   height: 38px;
 }
@@ -183,6 +187,10 @@ details[open] .details__close-icon {
   color: #9b9b9b;
 }
 
+/* Photoswipe gallery displayed in comments. */
+.comment .photoswipe-gallery-custom {
+  margin-top: .5rem;
+}
 @media (min-width: 600px) {
   .comment__avatar {
     margin-right: 12px;
@@ -194,13 +202,11 @@ details[open] .details__close-icon {
     display: none;
   }
 }
-
 @media (min-width: 900px) {
   .comments {
     margin-left: 56px;
   }
 }
-
 @media (max-width: 599px) {
   .comment-form .btn--comment-submit {
     padding-left: 6px;

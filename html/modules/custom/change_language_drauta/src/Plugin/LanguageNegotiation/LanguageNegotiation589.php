@@ -30,14 +30,19 @@ class LanguageNegotiation589 extends LanguageNegotiationMethodBase {
 	$entrar = TRUE;
 	$language_selected = null;	
 	$current_path = \Drupal::service('path.current')->getPath();
-	if (strpos($current_path, '/admin/') !== false || strpos($current_path, '/edit/') !== false || strpos($current_path, '/add/') !== false) {
+	if (strpos($current_path, '/admin/') !== false || strpos($current_path, '/edit') !== false || strpos($current_path, '/add') !== false) {
+	//if (\Drupal::service('router.admin_context')->isAdminRoute()) {
 		$entrar = FALSE;    	
 	}
+	
+
+	
+	
 	if($entrar) {
 		$tempstore = \Drupal::service('user.private_tempstore')->get('change_lang');	
 	
-		if(!empty($_GET['langdrauta'])) {
-			$language_selected = $_GET['langdrauta'];
+		if(!empty($_GET['langcustom'])) {
+			$language_selected = $_GET['langcustom'];
 			$tempstore->set('language_selected', $language_selected);	
 		} else {		
 			$language_selected = $tempstore->get('language_selected');		

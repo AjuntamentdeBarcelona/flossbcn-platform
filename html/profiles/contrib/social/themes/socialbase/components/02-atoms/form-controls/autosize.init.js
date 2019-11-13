@@ -11,7 +11,7 @@
       });
 
     }
-  };
+  }
 
   Drupal.behaviors.textareaFocus = {
     attach: function (context, settings) {
@@ -22,6 +22,6 @@
         $(this).parents('.main-container').toggleClass('open-keyboard');
       });
     }
-  };
+  }
 
 })(jQuery);

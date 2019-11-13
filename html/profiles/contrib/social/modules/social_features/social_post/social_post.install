@@ -75,6 +75,7 @@ function _social_post_get_permissions($role) {
     'delete any post entities',
     'edit any post entities',
     'view unpublished post entities',
+    'administer post entities',
   ]);
 
   // Site manager.

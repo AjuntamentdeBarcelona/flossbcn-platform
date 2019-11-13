@@ -748,6 +748,15 @@ $settings['container_yamls'][] = $app_root . '/' . $site_path . '/services.yml';
  * example.org, with all subdomains included.
  */
 
+/*$settings['trusted_host_patterns'] = array(
+  '^flossbcn/\.org$',
+  '^.+\.flossbcn\.org$',
+  '^barcelona\.cat$',
+  '^.+\.barcelona\.cat$',
+  '^drautadev\.com$',
+  '^.+\.drautadev\.com$',
+);*/
+
 /**
  * The default list of directories that will be ignored by Drupal's file API.
  *
@@ -784,9 +793,9 @@ $settings['entity_update_batch_size'] = 50;
  * Keep this code block at the end of this file to take full effect.
  */
 #
- if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
-   include $app_root . '/' . $site_path . '/settings.local.php';
- }
+# if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
+#   include $app_root . '/' . $site_path . '/settings.local.php';
+# }
 $databases['default']['default'] = array (
   'database' => 'flossbcn_b',
   'username' => 'flossbcn_u',

@@ -23,7 +23,7 @@ class ProfileForm extends ContentEntityForm {
     $profile_type = $profile_type_storage->load($profile->bundle());
 
     // Allow the profile to be saved as default if type supports multiple.
-    if ($profile_type->getMultiple() && !$profile->isDefault()) {
+    if ($profile_type->allowsMultiple() && !$profile->isDefault()) {
       // Add a "make default" button.
       $element['set_default'] = $element['submit'];
       $element['set_default']['#value'] = $this->t('Save and make default');
@@ -61,16 +61,10 @@ class ProfileForm extends ContentEntityForm {
   /**
    * {@inheritdoc}
    */
-  public function buildEntity(array $form, FormStateInterface $form_state) {
-    /** @var \Drupal\profile\Entity\ProfileInterface $entity */
-    $entity = parent::buildEntity($form, $form_state);
-
-    // Mark a new revision if the profile type enforces revisions.
+  protected function showRevisionUi() {
     /** @var \Drupal\profile\Entity\ProfileTypeInterface $profile_type */
-    $profile_type = $this->entityTypeManager->getStorage('profile_type')->load($entity->bundle());
-    $entity->setNewRevision($profile_type->shouldCreateNewRevision());
-
-    return $entity;
+    $profile_type = $this->entityTypeManager->getStorage('profile_type')->load($this->entity->bundle());
+    return $profile_type->showRevisionUi();
   }
 
   /**
@@ -95,7 +89,6 @@ class ProfileForm extends ContentEntityForm {
     else {
       $form_state->setRedirect('entity.profile.collection');
     }
-
   }
 
 }

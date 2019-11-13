@@ -19,7 +19,7 @@ class EventAnEnrollActionForm extends EnrollActionForm {
    * {@inheritdoc}
    */
   public function getFormId() {
-    return 'event_an_enroll_cancel_form';
+    return 'event_an_enroll_action_form';
   }
 
   /**
@@ -29,7 +29,7 @@ class EventAnEnrollActionForm extends EnrollActionForm {
     $nid = $node->id();
     $token = $this->getRequest()->query->get('token');
 
-    if (!empty($token) && social_event_an_enroll_token_exists($token, $nid)) {
+    if (!empty($token) && \Drupal::service('social_event_an_enroll.service')->tokenExists($token, $nid)) {
       $form['event'] = [
         '#type' => 'hidden',
         '#value' => $nid,
@@ -92,7 +92,7 @@ class EventAnEnrollActionForm extends EnrollActionForm {
           ],
           'data-dialog-type' => 'modal',
           'data-dialog-options' => json_encode([
-            'title' => t('Enroll in @event Event', ['@event' => $node->getTitle()]),
+            'title' => t('Enroll in') . ' ' . strip_tags($node->getTitle()),
             'width' => 'auto',
           ]),
         ];
@@ -128,8 +128,9 @@ class EventAnEnrollActionForm extends EnrollActionForm {
 
       // Invalidate cache for our enrollment cache tag in
       // social_event_node_view_alter().
-      $cache_tag = 'enrollment:' . $nid . '-' . $uid;
-      Cache::invalidateTags([$cache_tag]);
+      $cache_tags[] = 'enrollment:' . $nid . '-' . $uid;
+      $cache_tags[] = 'node:' . $nid;
+      Cache::invalidateTags($cache_tags);
 
       if ($enrollment = array_pop($enrollments)) {
         $enrollment->delete();

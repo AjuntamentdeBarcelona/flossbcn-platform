@@ -57,6 +57,9 @@
 		$forms = $config['forms'];
 		$variables['#attached']['drupalSettings']['site_key'] = $site_key;
 		$variables['#attached']['drupalSettings']['forms'] = $forms;
+		
+		
+		
 	}
 	
 	/**

@@ -2,7 +2,6 @@ langcode: en
 status: true
 dependencies:
   module:
-    - entity
     - profile
 id: profiles
 label: Profiles
@@ -243,7 +242,7 @@ display:
           validate:
             type: 'entity:profile_type'
             fail: 'not found'
-          validate_options: { }
+          validate_options: {  }
           glossary: false
           limit: 0
           case: none
@@ -293,10 +292,11 @@ display:
       display_extenders: {  }
       title: Profiles
     cache_metadata:
-      max-age: 0
+      max-age: -1
       contexts:
         - 'languages:language_interface'
         - url
+      tags: {  }
   profile_type_listing:
     display_plugin: embed
     id: profile_type_listing
@@ -306,10 +306,11 @@ display:
       display_extenders: {  }
       display_description: ''
     cache_metadata:
-      max-age: 0
+      max-age: -1
       contexts:
         - 'languages:language_interface'
         - url
+      tags: {  }
   user_view:
     display_plugin: embed
     id: user_view
@@ -373,7 +374,8 @@ display:
         fields: false
       display_description: ''
     cache_metadata:
-      max-age: 0
+      max-age: -1
       contexts:
         - 'languages:language_interface'
         - url
+      tags: {  }

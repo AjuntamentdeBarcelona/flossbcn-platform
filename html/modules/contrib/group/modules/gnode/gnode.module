@@ -11,6 +11,7 @@ use Drupal\group\Entity\GroupContentType;
 use Drupal\group\Entity\GroupRoleInterface;
 use Drupal\node\NodeInterface;
 use Drupal\node\NodeTypeInterface;
+use Drupal\Core\Url;
 
 // We need a grant ID for match-all access records.
 define('GNODE_MASTER_GRANT_ID', 1986);
@@ -77,19 +78,10 @@ function gnode_node_access(NodeInterface $node, $op, AccountInterface $account) 
 
   $plugin_id = 'group_node:' . $node->bundle();
 
-  // Only act if there are group content types for this node type.
-  $group_content_types = GroupContentType::loadByContentPluginId($plugin_id);
-  if (empty($group_content_types)) {
-    return AccessResult::neutral();
-  }
-
-  // Load all the group content for this node.
+  // Load all of the group content for this node.
   $group_contents = \Drupal::entityTypeManager()
     ->getStorage('group_content')
-    ->loadByProperties([
-      'type' => array_keys($group_content_types),
-      'entity_id' => $node->id(),
-    ]);
+    ->loadByEntity($node);
 
   // If the node does not belong to any group, we have nothing to say.
   if (empty($group_contents)) {
@@ -161,6 +153,12 @@ function gnode_node_grants(AccountInterface $account, $op) {
   // gnode_node_access_records() function as to why that is.
   if ($account->isAnonymous()) {
     return ['gnode_anonymous' => [GNODE_MASTER_GRANT_ID]];
+  }
+
+  $grants_cache = &drupal_static(__FUNCTION__, []);
+
+  if (isset($grants_cache[$account->id()][$op])) {
+    return $grants_cache[$account->id()][$op];
   }
 
   // Gather the machine names of all node types.
@@ -276,7 +274,8 @@ function gnode_node_grants(AccountInterface $account, $op) {
   }
 
   // Recursively merge the member grants with the outsider grants.
-  return array_merge_recursive($grants_m, $grants_o);
+  $grants_cache[$account->id()][$op] = array_merge_recursive($grants_m, $grants_o);
+  return $grants_cache[$account->id()][$op];
 }
 
 /**
@@ -289,19 +288,10 @@ function gnode_node_access_records(NodeInterface $node) {
   $node_type_id = $node->bundle();
   $plugin_id = "group_node:$node_type_id";
 
-  // Only act if there are group content types for this node type.
-  $group_content_types = GroupContentType::loadByContentPluginId($plugin_id);
-  if (empty($group_content_types)) {
-    return $records;
-  }
-
   // Load all of the group content for this node.
   $group_contents = \Drupal::entityTypeManager()
     ->getStorage('group_content')
-    ->loadByProperties([
-      'type' => array_keys($group_content_types),
-      'entity_id' => $node->id()
-    ]);
+    ->loadByEntity($node);
 
   // Only act if there are group content entities for this node.
   if (empty($group_contents)) {
@@ -396,4 +386,27 @@ function gnode_node_access_records(NodeInterface $node) {
   $records[] = $anonymous_record;
 
   return $records;
+}
+
+/**
+ * Implements hook_entity_operation().
+ */
+function gnode_entity_operation($entity) {
+  $operations = [];
+
+  if ($entity->getEntityTypeId() == 'group' && \Drupal::moduleHandler()->moduleExists('views')) {
+    if ($entity->hasPermission('access group_node overview', \Drupal::currentUser())) {
+      /** @var \Symfony\Component\Routing\RouterInterface $router */
+      $router = \Drupal::service('router.no_access_checks');
+      if ($router->getRouteCollection()->get('view.group_nodes.page_1') !== NULL) {
+        $operations['nodes'] = [
+          'title' => t('Nodes'),
+          'weight' => 20,
+          'url' => Url::fromRoute('view.group_nodes.page_1', ['group' => $entity->id()]),
+        ];
+      }
+    }
+  }
+
+  return $operations;
 }

@@ -43,6 +43,18 @@ third_party_settings:
         classes: ''
         id: ''
         required_fields: true
+    group_settings:
+      children: {  }
+      parent_name: ''
+      weight: -5
+      format_type: fieldset
+      format_settings:
+        id: ''
+        classes: ''
+        description: ''
+        required_fields: true
+      label: Settings
+      region: content
 id: group.closed_group.default
 targetEntityType: group
 bundle: closed_group
@@ -68,12 +80,15 @@ content:
     settings:
       show_crop_area: true
       show_default_crop: true
+      warn_multiple_usages: true
       preview_image_style: social_x_large
       crop_preview_image_style: crop_thumbnail
+      progress_indicator: throbber
       crop_list:
+        - hero_small
         - hero
         - teaser
-      progress_indicator: throbber
+      crop_types_required: {  }
     third_party_settings: {  }
     type: image_widget_crop
     region: content

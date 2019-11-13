@@ -1,5 +1,35 @@
 {% extends "node--full.html.twig" %}
 
+{% if display_submitted %}
+  {% block metainfo %}
+    <header class="metainfo">
+
+      <div class="metainfo__avatar">
+        {{ author_picture }}
+      </div>
+
+      <div class="metainfo__content">
+
+        {{ author }}
+
+        <div>
+          {% if event_type %}
+            {{ event_type }}
+          {% endif %}
+          {% if group_link %}
+            {% trans %} in group {% endtrans %}
+            {{ group_link }}
+          {% endif %}
+        </div>
+
+      </div>
+
+      {{ content.links.moderation }}
+
+    </header>
+  {% endblock %}
+{% endif %}
+
 {# add specific fields to body for events only #}
 {% block nodefull_specialfields %}
 
@@ -28,6 +58,6 @@
 
 {% block nodefull_body %}
 
-  {{ content|without('field_event_address','field_event_location', 'field_event_type', 'book_navigation', 'flag_follow_content', 'field_event_an_enroll') }}
+  {{ content|without('field_event_address','field_event_location', 'field_event_type', 'book_navigation', 'flag_follow_content', 'field_event_an_enroll', 'links') }}
 
 {% endblock %}

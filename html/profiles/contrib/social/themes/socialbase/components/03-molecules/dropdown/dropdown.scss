@@ -53,7 +53,7 @@
   z-index: $zindex-dropdown;
   display: none; // none by default, but block on "open" of the menu
   float: left;
-  min-width: 160px;
+  min-width: 275px;
   max-width: 500px;
   padding: 5px 0;
   margin: 2px 0 0; // override default ul
@@ -94,22 +94,25 @@
 
   // Links within the dropdown menu
 
-  li > a {
-    padding: 8px 10px;
-    display: block;
-    clear: both;
-    line-height: $line-height-base;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: $gray;
+  li {
+    > a,
+    > span {
+      padding: 8px 10px;
+      display: block;
+      clear: both;
+      line-height: $line-height-base;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: $gray;
 
-    &:hover {
-      background-color: $gray-lightest;
-    }
+      &:hover {
+        background-color: $gray-lightest;
+      }
 
-    @include for-tablet-portrait-up {
-      padding: 4px 10px 4px 15px;
+      @include for-tablet-portrait-up {
+        padding: 4px 10px 4px 15px;
+      }
     }
 
   }
@@ -138,15 +141,17 @@
 //
 // Gray out text and ensure the hover/focus state remains gray
 
-.dropdown-menu > .disabled > a {
-
-  // Nuke hover/focus effects
-  &:hover,
-  &:focus {
-    text-decoration: none;
-    background-color: transparent;
-    background-image: none; // Remove CSS gradient
-    cursor: $cursor-disabled;
+.dropdown-menu > .disabled {
+  > a,
+  > span {
+    // Nuke hover/focus effects
+    &:hover,
+    &:focus {
+      text-decoration: none;
+      background-color: transparent;
+      background-image: none; // Remove CSS gradient
+      cursor: $cursor-disabled;
+    }
   }
 }
 
@@ -331,5 +336,30 @@
 
   p {
     margin-bottom: 0;
+  }
+}
+
+// Dropdown without js.
+html:not(.js) {
+
+  .dropdown:focus .dropdown-menu,
+  .dropdown:hover .dropdown-menu,
+  .comment__actions:hover .dropdown-menu,
+  .comment__actions:hover .dropdown-menu,
+  .dropdown-menu:hover {
+    display: block;
+  }
+
+  .dropdown {
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+    }
+
+    .dropdown-toggle {
+      pointer-events: none;
+      z-index: -1;
+    }
   }
 }

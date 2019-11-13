@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\profile\Functional;
 
-use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\Url;
 use Drupal\profile\Entity\Profile;
 use Drupal\profile\Entity\ProfileType;
@@ -14,6 +13,7 @@ use Drupal\user\Entity\User;
  * @group profile
  */
 class ProfileDefaultTest extends ProfileTestBase {
+
   /**
    * Testing demo user 1.
    *
@@ -96,11 +96,11 @@ class ProfileDefaultTest extends ProfileTestBase {
 
     $this->drupalLogin($admin_user);
 
-    $this->drupalGet($profile1->toUrl('edit-form')->toString());
+    $this->drupalGet($profile1->toUrl('edit-form'));
     $this->assertSession()->buttonNotExists('Save and make default');
     $this->assertSession()->buttonExists('Save');
 
-    $this->drupalGet($profile2->toUrl('edit-form')->toString());
+    $this->drupalGet($profile2->toUrl('edit-form'));
     $this->assertSession()->buttonExists('Save');
     $this->assertSession()->buttonExists('Save and make default');
     $this->submitForm([], 'Save and make default');
@@ -142,7 +142,23 @@ class ProfileDefaultTest extends ProfileTestBase {
     $this->assertSession()->pageTextContains('Frederick Miller');
     $this->assertSession()->linkExists('Mark as default');
     $this->getSession()->getPage()->clickLink('Mark as default');
-    $this->assertSession()->responseContains(new FormattableMarkup('The %label profile has been marked as default.', ['%label' => $profile2->label()]));
+    $this->assertSession()->responseContains((string) t('The %label profile has been marked as default.', ['%label' => $profile2->label()]));
+  }
+
+  /**
+   * Test profile display options on user entity display mode.
+   */
+  public function testProfileFieldOnUserDisplayConfig() {
+    $id = $this->type->id();
+    $this->drupalLogin($this->rootUser);
+
+    // Check that profile field is configurable on user diplay mode.
+    $this->drupalGet('admin/config/people/accounts/display');
+    $field_label = $this->type->label() . ' profiles';
+    $this->assertSession()->pageTextContains($field_label);
+    $edit = ["fields[{$id}_profiles][label]" => 'inline'];
+    $edit = ["fields[{$id}_profiles][type]" => 'entity_reference_entity_view'];
+    $this->drupalPostForm(NULL, $edit, t('Save'));
   }
 
 }

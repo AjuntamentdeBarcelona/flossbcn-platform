@@ -5,6 +5,7 @@
  * Builds placeholder replacement tokens for message-related data.
  */
 
+use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Url;
 use Drupal\group\Entity\Group;
@@ -40,6 +41,12 @@ function activity_logger_token_info() {
     'description' => t("The URL of the private message thread group url."),
   ];
 
+  $message['recipient-user'] = [
+    'name' => t('Recipient user'),
+    'description' => t('The recipient user.'),
+    'type' => 'user',
+  ];
+
   $message['recipient-user-url'] = [
     'name' => t("Recipient user url"),
     'description' => t("The recipient user url."),
@@ -59,9 +66,11 @@ function activity_logger_token_info() {
 function activity_logger_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
   $replacements = [];
 
-  if ($type == 'message' && !empty($data['message'])) {
+  if ($type === 'message' && !empty($data['message'])) {
     /** @var \Drupal\message\Entity\Message $message */
     $message = $data['message'];
+
+    $token_service = \Drupal::token();
 
     foreach ($tokens as $name => $original) {
       switch ($name) {
@@ -69,6 +78,7 @@ function activity_logger_tokens($type, $tokens, array $data, array $options, Bub
         case 'node-title':
         case 'gtitle':
         case 'gurl':
+        case 'recipient-user':
         case 'recipient-user-url':
         case 'pmt-url':
 
@@ -83,7 +93,14 @@ function activity_logger_tokens($type, $tokens, array $data, array $options, Bub
               // If comment get the entity to which the comment is attached.
               if ($entity->getEntityTypeId() === 'comment') {
                 $entity = $entity->getCommentedEntity();
+
+                // It could happen that a notification has been queued but by
+                // now the "commented entity" has been deleted.
+                if (!$entity instanceof FieldableEntityInterface) {
+                  break;
+                }
               }
+
               // When it is a node.
               if ($entity->getEntityTypeId() === 'node') {
                 $node = $entity;
@@ -110,7 +127,17 @@ function activity_logger_tokens($type, $tokens, array $data, array $options, Bub
               // Handling for group content entities.
               if ($entity->getEntityTypeId() === 'group_content') {
                 $group = $entity->getGroup();
-                $node = $entity->getEntity();
+                $group_content_entity = $entity->getEntity();
+
+                switch ($group_content_entity->getEntityTypeId()) {
+                  case 'node':
+                    $node = &$group_content_entity;
+                    break;
+
+                  case 'user':
+                    $recipient_user = &$group_content_entity;
+                    break;
+                }
               }
               // Handling for group entities.
               if ($entity->getEntityTypeId() === 'group') {
@@ -135,7 +162,19 @@ function activity_logger_tokens($type, $tokens, array $data, array $options, Bub
                 }
               }
 
-              if ($name === 'recipient-user-url') {
+              if ($name === 'recipient-user') {
+                if (!empty($recipient_user)) {
+                  $account = &$recipient_user;
+                }
+                else {
+                  $account = \Drupal::entityTypeManager()->getStorage('user')
+                    ->load(0);
+                }
+
+                /** @var \Drupal\user\UserInterface $account */
+                $replacements[$original] = $account->getDisplayName();
+              }
+              elseif ($name === 'recipient-user-url') {
                 if (!empty($recipient_user)) {
                   $target_stream_url = Url::fromRoute('entity.user.canonical',
                     ['user' => $recipient_user->id()],
@@ -173,6 +212,12 @@ function activity_logger_tokens($type, $tokens, array $data, array $options, Bub
           }
           break;
       }
+    }
+
+    $recipient_user_tokens = $token_service->findWithPrefix($tokens, 'recipient-user');
+
+    if ($recipient_user_tokens && !empty($recipient_user)) {
+      $replacements += $token_service->generate('user', $recipient_user_tokens, ['user' => $recipient_user], $options, $bubbleable_metadata);
     }
   }
 

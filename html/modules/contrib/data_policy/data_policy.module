@@ -36,6 +36,16 @@ function data_policy_help($route_name, RouteMatchInterface $route_match) {
 }
 
 /**
+ * Implements hook_hook_info().
+ */
+function data_policy_hook_info() {
+  $hooks = array(
+    'data_policy_destination_alter',
+  );
+  return array_fill_keys($hooks, array('group' => 'data_policy'));
+}
+
+/**
  * Implements hook_theme().
  */
 function data_policy_theme($existing, $type, $theme, $path) {

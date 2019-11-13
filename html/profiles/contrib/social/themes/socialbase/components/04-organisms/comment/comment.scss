@@ -131,6 +131,10 @@ a[id^="comment-"] {
 
 .comment-form {
 
+  .form-managed-file {
+    padding-right: 40px;
+  }
+
   @include for-phone-only {
 
     .btn--comment-submit {
@@ -232,4 +236,9 @@ details[open] .details__close-icon {
   * {
     color: #9b9b9b;
   }
+}
+
+/* Photoswipe gallery displayed in comments. */
+.comment .photoswipe-gallery-custom {
+  margin-top: .5rem;
 }

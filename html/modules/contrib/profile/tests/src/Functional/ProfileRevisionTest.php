@@ -16,7 +16,7 @@ use Drupal\profile\Entity\ProfileType;
 class ProfileRevisionTest extends ProfileTestBase {
 
   /**
-   * Testing profile type, with use_revisions.
+   * Testing profile type that uses revisions.
    *
    * @var \Drupal\profile\Entity\ProfileType
    */
@@ -31,7 +31,8 @@ class ProfileRevisionTest extends ProfileTestBase {
     $use_revisions_type = ProfileType::create([
       'id' => $this->randomMachineName(),
       'label' => $this->randomMachineName(),
-      'use_revisions' => TRUE,
+      'allow_revisions' => TRUE,
+      'new_revision' => TRUE,
     ]);
     $use_revisions_type->save();
     $this->useRevisionsType = $use_revisions_type;
@@ -131,6 +132,7 @@ class ProfileRevisionTest extends ProfileTestBase {
       'profile_type' => $this->useRevisionsType->id(),
     ]);
     $this->drupalGet($create_url);
+    $this->getSession()->getPage()->hasField('revision_log_message');
     $edit = [
       'profile_fullname[0][value]' => $this->getRandomGenerator()->word(10),
     ];
@@ -154,6 +156,20 @@ class ProfileRevisionTest extends ProfileTestBase {
     $profile = $storage->loadDefaultByUser($this->loggedInUser, $this->useRevisionsType->id());
     $this->assertEquals($existing_profile_id, $profile->id());
     $this->assertNotEquals($existing_revision_id, $profile->getRevisionId());
+
+    // Assert that unchecking the revision checkbox doesn't create a new
+    // revision.
+    $existing_revision_id = $profile->getRevisionId();
+    $this->drupalGet($create_url);
+    $this->getSession()->getPage()->uncheckField('revision');
+    $edit = [
+      'profile_fullname[0][value]' => $this->getRandomGenerator()->word(10),
+    ];
+    $this->submitForm($edit, 'Save');
+    $storage->resetCache([$profile->id()]);
+    $profile = $storage->loadDefaultByUser($this->loggedInUser, $this->useRevisionsType->id());
+    $this->assertEquals($existing_profile_id, $profile->id());
+    $this->assertEquals($existing_revision_id, $profile->getRevisionId());
   }
 
 }

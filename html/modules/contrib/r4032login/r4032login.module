@@ -6,6 +6,8 @@
  */
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
+use Drupal\user\Entity\User;
 
 /**
  * Implements hook_form_FORM_ID_alter().
@@ -153,8 +155,19 @@ function r4032login_form_system_site_information_settings_validate($form, FormSt
       $r4032loginUserLoginPath = str_replace($renameAdminPathsSettings['user_path_value'], 'user', $r4032loginUserLoginPath);
     }
 
-    if (!$path_validator->isValid($r4032loginUserLoginPath)) {
-      $form_state->setErrorByName('r4032login_user_login_path', t("The user login form path '%path' is either invalid or you do not have access to it.", [
+    // Check whether the anonymous user can access the entered path.
+    // Url::fromUserInput checks for a valid internal path under the hood.
+    $valid_path = FALSE;
+    try {
+      $url = Url::fromUserInput($r4032loginUserLoginPath);
+      $valid_path = $url && $url->access(User::getAnonymousUser());
+    }
+    catch (\InvalidArgumentException $e) {
+      // If an invalid URL was entered then we're done.
+    }
+
+    if (!$valid_path) {
+      $form_state->setErrorByName('r4032login_user_login_path', t("The user login form path '%path' is either invalid or a logged out user does not have access to it.", [
         '%path' => $form_state->getValue('r4032login_user_login_path'),
       ]));
     }

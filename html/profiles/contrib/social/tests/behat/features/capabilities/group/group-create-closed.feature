@@ -10,10 +10,8 @@ Feature: Create Closed Group
       | Group User One | group_user_1@example.com | 1      |
       | Group User Two | group_user_2@example.com | 1      |
     And I am logged in as "Group User One"
-    And I am on "user"
-    And I click "Groups"
-    And I click "Add a group"
-    Then I click radio button "Closed group This is a closed group. Users can only join by invitation and all content added in this group will be hidden for non members." with the id "edit-group-type-closed-group"
+    And I am on "group/add"
+    Then I click radio button "Closed group This is a closed group. Users can only join by invitation and the content in the group is hidden from non members." with the id "edit-group-type-closed-group"
     And I press "Continue"
     When I fill in "Title" with "Test closed group"
     And I fill in the "edit-field-group-description-0-value" WYSIWYG editor with "Description text"
@@ -110,9 +108,9 @@ Feature: Create Closed Group
     Then I should not see "Test closed group topic"
     Then I should not see "Test closed group event"
     And I should not see "This is a closed group post."
-    And I should not see "Stream"
-    And I should not see "Events"
-    And I should not see "Topics"
+    And I should not see "Stream" in the "Tabs"
+    And I should not see "Events" in the "Tabs"
+    And I should not see "Topics" in the "Tabs"
     And I should not see "all upcoming events"
     And I should not see "all topics"
 
@@ -146,8 +144,8 @@ Feature: Create Closed Group
 
    # Delete the group and all content of the group
     When I am logged in as "Group User One"
-    And I am on "user"
-    And I click "Groups"
+    And I click the xth "0" element with the css ".navbar-nav .profile"
+    And I click "My groups"
     And I click "Test closed group"
     And I click "Edit group"
     And I click "Delete"
@@ -157,8 +155,8 @@ Feature: Create Closed Group
     And I press "Delete"
     And I wait for AJAX to finish
     Then I should see "Your group and all of its topics, events and posts have been deleted."
-    When I am on "user"
-    And I click "Groups"
+    When I click the xth "0" element with the css ".navbar-nav .profile"
+    And I click "My groups"
     Then I should not see "Test closed group"
     When I am on "/all-topics"
     Then I should not see "Test closed group topic"
@@ -167,10 +165,8 @@ Feature: Create Closed Group
 
   # Create a closed group to test the leaving of a closed group
     When I am logged in as "Group User Two"
-    And I am on "user"
-    And I click "Groups"
-    And I click "Add a group"
-    Then I click radio button "Closed group This is a closed group. Users can only join by invitation and all content added in this group will be hidden for non members." with the id "edit-group-type-closed-group"
+    And I am on "group/add"
+    Then I click radio button "Closed group This is a closed group. Users can only join by invitation and the content in the group is hidden from non members." with the id "edit-group-type-closed-group"
     And I press "Continue"
     When I fill in "Title" with "Test closed group 2"
     And I fill in the "edit-field-group-description-0-value" WYSIWYG editor with "Description text"
@@ -187,7 +183,7 @@ Feature: Create Closed Group
 
   # As a member of this closed group I want to leave the group
     And I should see the button "Joined"
-    And I click the element with css selector "#hero .dropdown-toggle"
+    And I press "Joined"
     And I should see the link "Leave group"
     And I click "Leave group"
     And I should see "This action cannot be undone."

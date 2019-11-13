@@ -75,7 +75,7 @@ function social_verify_custom_requirements(array &$install_state) {
     $requirements['addressing_library'] = [
       'title' => t('Address module requirements)'),
       'value' => t('Not installed'),
-      'description' => t('The Address module requires the commerceguys/addressing library. <a href=":link" target="_blank">For more information check our readme</a>', [':link' => 'https://github.com/goalgorilla/drupal_social/blob/master/readme.md#install-from-project-page-on-drupalorg']),
+      'description' => t('The Address module requires the commerceguys/addressing library. <a href=":link" target="_blank">For more information check our readme</a>', [':link' => 'https://www.drupal.org/docs/8/distributions/open-social/installing-and-updating']),
       'severity' => REQUIREMENT_ERROR,
     ];
   }
@@ -139,10 +139,15 @@ function social_form_install_configure_form_alter(&$form, FormStateInterface $fo
     'social_sharing' => t('Share content on social media'),
     'social_event_type' => t('Categorize events in event types'),
     'social_sso' => t('Registration with social networks'),
+    'social_search_autocomplete' => t('Suggested results in the search overlay'),
     'social_file_private' => t('Use the private file system for uploaded files (highly recommended)'),
     'inline_form_errors' => t('Inline Form Errors'),
     'page_cache' => t('Cache page for anonymous users (highly recommended)'),
     'dynamic_page_cache' => t('Cache pages for any user (highly recommended)'),
+    'social_lets_connect_contact' => t('Adds Open Social Links to the main menu.'),
+    'social_lets_connect_usage' => t('Shares usage data to the Open Social team.'),
+    'social_group_flexible_group' => t('Flexible group functionality'),
+    'social_group_secret' => t('Secret group functionality'),
   ];
 
   // Checkboxes to enable Optional modules.
@@ -151,10 +156,14 @@ function social_form_install_configure_form_alter(&$form, FormStateInterface $fo
     '#title' => t('Enable additional features'),
     '#options' => $social_optional_modules,
     '#default_value' => [
-      'social_file_private',
+      'dynamic_page_cache',
       'inline_form_errors',
       'page_cache',
-      'dynamic_page_cache',
+      'social_file_private',
+      'social_search_autocomplete',
+      'social_lets_connect_contact',
+      'social_lets_connect_usage',
+      'social_group_flexible_group',
     ],
   ];
 
@@ -195,6 +204,7 @@ function social_install_profile_modules(array &$install_state) {
     'social_core' => 'social_core',
     'social_user' => 'social_user',
     'social_group' => 'social_group',
+    'social_group_gvbo' => 'social_group_gvbo',
     'social_event' => 'social_event',
     'social_topic' => 'social_topic',
     'social_profile' => 'social_profile',

@@ -49,10 +49,11 @@ class ProfileLocalTask extends DeriverBase implements ContainerDeriverInterface 
 
     // Starting weight for ordering the local tasks.
     $weight = 10;
-
-    foreach ($this->entityTypeManager->getStorage('profile_type')->loadMultiple() as $profile_type_id => $profile_type) {
+    /** @var \Drupal\profile\Entity\ProfileTypeInterface[] $profile_types */
+    $profile_types = $this->entityTypeManager->getStorage('profile_type')->loadMultiple();
+    foreach ($profile_types as $profile_type_id => $profile_type) {
       $this->derivatives["profile.type.$profile_type_id"] = [
-        'title' => $profile_type->label(),
+        'title' => $profile_type->getDisplayLabel() ?: $profile_type->label(),
         'route_name' => 'entity.profile.type.user_profile_form',
         'base_route' => 'entity.user.canonical',
         'route_parameters' => ['profile_type' => $profile_type_id],

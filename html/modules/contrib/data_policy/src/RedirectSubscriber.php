@@ -4,6 +4,7 @@ namespace Drupal\data_policy;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Link;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Routing\RedirectDestinationInterface;
@@ -76,6 +77,13 @@ class RedirectSubscriber implements EventSubscriberInterface {
   protected $dataPolicyConsentManager;
 
   /**
+   * The module handler interface.
+   *
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface
+   */
+  protected $moduleHandler;
+
+  /**
    * RedirectSubscriber constructor.
    *
    * @param \Drupal\Core\Routing\RouteMatchInterface $route_match
@@ -92,8 +100,10 @@ class RedirectSubscriber implements EventSubscriberInterface {
    *   The messenger.
    * @param \Drupal\data_policy\DataPolicyConsentManagerInterface $data_policy_manager
    *   The Data Policy consent manager.
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
+   *   The module handler interface.
    */
-  public function __construct(RouteMatchInterface $route_match, RedirectDestinationInterface $destination, AccountProxyInterface $current_user, ConfigFactoryInterface $config_factory, EntityTypeManagerInterface $entity_type_manager, MessengerInterface $messenger, DataPolicyConsentManagerInterface $data_policy_manager) {
+  public function __construct(RouteMatchInterface $route_match, RedirectDestinationInterface $destination, AccountProxyInterface $current_user, ConfigFactoryInterface $config_factory, EntityTypeManagerInterface $entity_type_manager, MessengerInterface $messenger, DataPolicyConsentManagerInterface $data_policy_manager, ModuleHandlerInterface $module_handler) {
     $this->routeMatch = $route_match;
     $this->destination = $destination;
     $this->currentUser = $current_user;
@@ -101,6 +111,7 @@ class RedirectSubscriber implements EventSubscriberInterface {
     $this->entityTypeManager = $entity_type_manager;
     $this->messenger = $messenger;
     $this->dataPolicyConsentManager = $data_policy_manager;
+    $this->moduleHandler = $module_handler;
   }
 
   /**
@@ -116,19 +127,24 @@ class RedirectSubscriber implements EventSubscriberInterface {
    *
    * @param \Symfony\Component\HttpKernel\Event\GetResponseEvent $event
    *   The event.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  public function checkForRedirection(GetResponseEvent $event) {
+  public function checkForRedirection(GetResponseEvent $event): void {
+    // Check if a data policy is set.
     if (!$this->dataPolicyConsentManager->isDataPolicy()) {
       return;
     }
 
-    $route_name = $this->routeMatch->getRouteName();
-
-    if ($route_name == 'data_policy.data_policy.agreement') {
+    // Check if the current route is the data policy agreement page.
+    if (($route_name = $this->routeMatch->getRouteName()) === 'data_policy.data_policy.agreement') {
+      // The current route is the data policy agreement page. We don't need
+      // a redirect response.
       return;
     }
 
-    if ($this->currentUser->hasPermission('without consent')) {
+    if ($this->getCurrentUser()->hasPermission('without consent')) {
       return;
     }
 
@@ -149,7 +165,7 @@ class RedirectSubscriber implements EventSubscriberInterface {
     }
 
     $values = [
-      'user_id' => $this->currentUser->id(),
+      'user_id' => $this->getCurrentUser()->id(),
       'data_policy_revision_id' => $vid,
     ];
 
@@ -177,23 +193,58 @@ class RedirectSubscriber implements EventSubscriberInterface {
     $route_names = [
       'entity.user.cancel_form',
       'data_policy.data_policy',
+      'system.403',
       'system.404',
       'system.batch_page.html',
       'system.batch_page.json',
       'user.cancel_confirm',
       'user.logout',
+      'entity_sanitizer_image_fallback.generator',
     ];
 
-    if (in_array($route_name, $route_names)) {
+    if (in_array($route_name, $route_names, TRUE)) {
       return;
     }
 
+    // Set the destination that redirects the user after accepting the
+    // data policy agreements.
+    $destination = $this->getDestination();
+
+    // Check if there are hooks to invoke that do an override.
+    $implementations = $this->moduleHandler->getImplementations('data_policy_destination_alter');
+    foreach ($implementations as $module) {
+      $destination = $this->moduleHandler->invoke($module, 'data_policy_destination_alter', [
+        $this->getCurrentUser(),
+        $this->getDestination(),
+      ]);
+    }
+
     $url = Url::fromRoute('data_policy.data_policy.agreement', [], [
-      'query' => $this->destination->getAsArray(),
+      'query' => $destination->getAsArray(),
     ]);
 
     $response = new RedirectResponse($url->toString());
     $event->setResponse($response);
+  }
+
+  /**
+   * Get the redirect destination.
+   *
+   * @return \Drupal\Core\Routing\RedirectDestinationInterface
+   *   The redirect destination.
+   */
+  protected function getDestination(): RedirectDestinationInterface {
+    return $this->destination;
+  }
+
+  /**
+   * Get the current user.
+   *
+   * @return \Drupal\Core\Session\AccountProxyInterface
+   *   The current user.
+   */
+  protected function getCurrentUser(): AccountProxyInterface {
+    return $this->currentUser;
   }
 
 }

@@ -18,6 +18,14 @@ interface DataPolicyConsentManagerInterface {
   public function needConsent();
 
   /**
+   * Check if the user has given consent to the latest default data policy.
+   *
+   * @return bool|int
+   *   FALSE if the user doesn't have given consent.
+   */
+  public function hasGivenConsent();
+
+  /**
    * Add checkbox to form which allow user give consent on data policy.
    *
    * @param array $form

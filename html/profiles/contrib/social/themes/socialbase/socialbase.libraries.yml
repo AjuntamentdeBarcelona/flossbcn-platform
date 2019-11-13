@@ -202,6 +202,11 @@ pagination:
     component:
       assets/css/pagination.css: {}
 
+photoswipe-gallery:
+  css:
+    component:
+      assets/css/photoswipe-gallery.css: {}
+
 popover:
   css:
     component:
@@ -310,6 +315,11 @@ photoswipe.image:
     /libraries/photoswipe/dist/photoswipe.min.js: { minified: true }
     /libraries/photoswipe/dist/photoswipe-ui-default.min.js: { minified: true }
     assets/js/photoswipe.min.js: { minified: true }
+
+post:
+  css:
+    component:
+      assets/css/post.css: {}
 
 ### 2.4 Templates
 layout:

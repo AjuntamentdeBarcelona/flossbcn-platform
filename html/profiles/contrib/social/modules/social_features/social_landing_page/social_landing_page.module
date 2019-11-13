@@ -12,6 +12,8 @@ use Drupal\image\Entity\ImageStyle;
 use Drupal\node\NodeInterface;
 use Drupal\node\Entity\Node;
 use Drupal\paragraphs\Entity\Paragraph;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\Core\Url;
 
 /**
  * Implements hook_form_alter().
@@ -86,13 +88,28 @@ function social_landing_page_theme() {
   $theme_templates['paragraph__featured__default'] = [
     'base hook' => 'paragraph',
   ];
+  $theme_templates['paragraph__featured_item__default'] = [
+    'base hook' => 'paragraph',
+  ];
+  $theme_templates['paragraph__featured_items__default'] = [
+    'base hook' => 'paragraph',
+  ];
   $theme_templates['paragraph__hero__default'] = [
+    'base hook' => 'paragraph',
+  ];
+  $theme_templates['paragraph__hero_small__default'] = [
     'base hook' => 'paragraph',
   ];
   $theme_templates['paragraph__introduction__default'] = [
     'base hook' => 'paragraph',
   ];
   $theme_templates['paragraph__section__default'] = [
+    'base hook' => 'paragraph',
+  ];
+  $theme_templates['paragraph__accordion__default'] = [
+    'base hook' => 'paragraph',
+  ];
+  $theme_templates['paragraph__accordion_item__default'] = [
     'base hook' => 'paragraph',
   ];
   // Fields.
@@ -105,6 +122,9 @@ function social_landing_page_theme() {
   ];
   // Fields for hero buttons.
   $theme_templates['field__paragraph__field_hero_buttons'] = [
+    'base hook' => 'field',
+  ];
+  $theme_templates['field__paragraph__field_hero_small_buttons'] = [
     'base hook' => 'field',
   ];
   // Views.
@@ -139,19 +159,6 @@ function social_landing_page_preprocess_page(&$variables) {
 }
 
 /**
- * Implements hook_theme_registry_alter().
- */
-function social_landing_page_theme_registry_alter(&$theme_registry) {
-  // Here we put our preprocess function after bootstrap
-  // preprocess to have content_attributes inside.
-  $original = $theme_registry['page']['preprocess functions'];
-  $key = array_search('social_landing_page_preprocess_page', $original, TRUE);
-  unset($original[$key]);
-  array_splice($original, ++$key, 0, ['social_landing_page_preprocess_page']);
-  $theme_registry['page']['preprocess functions'] = $original;
-}
-
-/**
  * Prepares variables for the paragraph.
  */
 function social_landing_page_preprocess_paragraph(&$variables) {
@@ -166,6 +173,16 @@ function social_landing_page_preprocess_paragraph(&$variables) {
       $image_field = "field_{$bundle}_image";
       if ($entity->hasField($image_field) && !empty($entity->{$image_field}->entity)) {
         $variables['hero_styled_image_url'] = ImageStyle::load($image_style)
+          ->buildUrl($entity->{$image_field}->entity->getFileUri());
+      }
+      break;
+
+    case 'hero_small':
+      // Add the hero styled image.
+      $image_style = 'social_landing_hero_small';
+      $image_field = "field_{$bundle}_image";
+      if ($entity->hasField($image_field) && !empty($entity->{$image_field}->entity)) {
+        $variables['hero_small_styled_image_url'] = ImageStyle::load($image_style)
           ->buildUrl($entity->{$image_field}->entity->getFileUri());
       }
       break;
@@ -239,7 +256,7 @@ function social_landing_page_preprocess_field(&$variables) {
  */
 function _social_landing_page_get_hero_image(Node $node) {
   // Must be a valid node.
-  if (!$node instanceof Node) {
+  if (!$node instanceof Node || $node->getType() !== 'landing_page') {
     return [];
   }
 
@@ -280,5 +297,22 @@ function _social_landing_page_get_hero_image(Node $node) {
   }
 
   return [];
+}
 
+/**
+ * Implements hook_social_user_account_header_create_links().
+ *
+ * Adds the "Create Landing Page" link to the content creation menu.
+ */
+function social_landing_page_social_user_account_header_create_links($context) {
+  return [
+    'add_landing_page' => [
+      '#type' => 'link',
+      '#attributes' => [
+        'title' => new TranslatableMarkup('Create New Landing Page'),
+      ],
+      '#title' => new TranslatableMarkup('New Landing Page'),
+      '#weight' => 400,
+    ] + Url::fromRoute('node.add', ['node_type' => 'landing_page'])->toRenderArray(),
+  ];
 }

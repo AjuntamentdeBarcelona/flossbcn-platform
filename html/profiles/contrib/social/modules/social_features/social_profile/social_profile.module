@@ -5,18 +5,20 @@
  * The Social profile module.
  */
 
-use Drupal\user\Entity\User;
-use Drupal\Core\Url;
-use Drupal\Core\Link;
-use Drupal\Core\Form\FormStateInterface;
-use Drupal\profile\Entity\Profile;
-use Drupal\profile\Entity\ProfileType;
-use Drupal\user\UserInterface;
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Link;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
+use Drupal\Core\Url;
 use Drupal\file\Entity\File;
 use Drupal\image\Entity\ImageStyle;
+use Drupal\profile\Entity\Profile;
+use Drupal\profile\Entity\ProfileType;
+use Drupal\user\Entity\User;
+use Drupal\user\UserInterface;
 
 define('SOCIAL_PROFILE_SUGGESTIONS_USERNAME', 'username');
 define('SOCIAL_PROFILE_SUGGESTIONS_FULL_NAME', 'full_name');
@@ -102,8 +104,9 @@ function social_profile_form_profile_profile_edit_form_alter(array &$form, FormS
   // case by default. Since we provide an empty vocabulary.
   // We also check for a fieldset, used by our special widget which doesn't use
   // #options.
-  if (empty($form['field_profile_profile_tag']['widget']['#options'])
-    && $form['field_profile_profile_tag']['widget']['#type'] !== 'container') {
+  if (!empty($form['field_profile_profile_tag']['widget']) &&
+    (empty($form['field_profile_profile_tag']['widget']['#options'])
+      && $form['field_profile_profile_tag']['widget']['#type'] !== 'container')) {
     unset($form['field_profile_profile_tag']);
   }
 
@@ -225,8 +228,8 @@ function social_profile_local_tasks_alter(&$local_tasks) {
  * Implements hook_form_FORM_ID_alter().
  */
 function social_profile_form_views_exposed_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  if ($form['#id'] == 'views-exposed-form-search-users-page') {
-    if (!empty($form['profile_tag'])) {
+  if ($form['#id'] === 'views-exposed-form-search-users-page') {
+    if (!empty($form['profile_tag']['#options'])) {
       $form['profile_tag']['#type'] = 'checkboxes';
       // If the view is configured to preserve hierarchy we need to do a bit
       // more to make checkboxes work.
@@ -241,7 +244,7 @@ function social_profile_form_views_exposed_form_alter(&$form, FormStateInterface
         $form['profile_tag']['#options'] = $options;
       }
     }
-    if (empty($form['profile_tag']['#options'])) {
+    else {
       unset($form['profile_tag']);
     }
   }
@@ -252,7 +255,7 @@ function social_profile_form_views_exposed_form_alter(&$form, FormStateInterface
  */
 function social_profile_preprocess_fieldset(&$variables) {
   // Style our checkboxes as nested checkboxes.
-  if ($variables['element']['#name'] === 'profile_tag') {
+  if (isset($variables['element']['#name']) && $variables['element']['#name'] === 'profile_tag') {
     $variables['attributes']['class'][] = 'checkboxes--nested';
   }
 }
@@ -279,7 +282,8 @@ function social_profile_preprocess_form_element_label(&$variables) {
   // Edit the profile tag displays to show the hierarchy to users.
   // Only do this if it starts with a - to indicate it's a child.
   if (
-    substr($variables['element']['#id'], 0, 17) === 'edit-profile-tag-'
+    isset($variables['element']['#id'])
+    && substr($variables['element']['#id'], 0, 17) === 'edit-profile-tag-'
     && substr($variables['element']['#title'], 0, 1) === '-'
   ) {
     $variables['title']['#markup'] = substr($variables['title']['#markup'], 1);
@@ -328,12 +332,13 @@ function social_profile_preprocess_profile(array &$variables) {
   $variables['profile_name'] = $user->getDisplayName();
   $variables['profile_contact_url'] = _social_profile_get_contact_url($user);
   $variables['profile_stream_url'] = Url::fromUserInput('/user/' . $profile->getOwnerId() . '/stream');
+  $variables['profile_home'] = Url::fromRoute('entity.user.canonical', ['user' => $user->id()]);
 
   // Set a condition for the label to show in the teaser
   // The actual label text should be changeable in the template.
   // Disable for the LU's own profile.
   $variables['profile_contact_label'] = 'profile_info';
-  if (\Drupal::moduleHandler()->moduleExists('social_private_message') && $current_user->id() != $profile->getOwnerId()) {
+  if (\Drupal::moduleHandler()->moduleExists('social_private_message') && $current_user->id() != $profile->getOwnerId() && $current_user->hasPermission('use private messaging system') && User::load($profile->getOwnerId())->hasPermission('use private messaging system')) {
     $variables['profile_contact_label'] = 'private_message';
     $variables['#cache']['contexts'][] = 'user';
   }
@@ -344,7 +349,7 @@ function social_profile_preprocess_profile(array &$variables) {
     $profile_show_email = $profile->field_profile_show_email->value;
   }
   if ($global_show_email
-    || !$global_show_email && !empty($profile_show_email)
+    || (!$global_show_email && !empty($profile_show_email))
     || $current_user->hasPermission('view profile email')
   ) {
     // Derived from MailToFormatter.php.
@@ -386,15 +391,16 @@ function social_profile_preprocess_profile(array &$variables) {
 function _social_profile_get_contact_url(User $account) {
   if (\Drupal::moduleHandler()->moduleExists('social_private_message')) {
     $current_user = \Drupal::currentUser();
-    if ($current_user->hasPermission('use private messaging system') && $current_user->id() != $account->id()) {
+    if ($current_user->hasPermission('use private messaging system') && $account->hasPermission('use private messaging system') && $current_user->id() != $account->id()) {
       $members = [$current_user, $account];
       $thread_id = \Drupal::service('private_message.mapper')->getThreadIdForMembers($members);
       if ($thread_id) {
-        return Url::fromRoute('entity.private_message_thread.canonical', ['private_message_thread' => $thread_id], ['attributes' => ['class' => ['private_message_link']]]);
+        $url = Url::fromRoute('entity.private_message_thread.canonical', ['private_message_thread' => $thread_id], ['attributes' => ['class' => ['private_message_link']]]);
+        if ($url->access($current_user)) {
+          return $url;
+        }
       }
-      else {
-        return Url::fromRoute('private_message.private_message_create', [], ['query' => ['recipient' => $account->id()]]);
-      }
+      return Url::fromRoute('private_message.private_message_create', [], ['query' => ['recipient' => $account->id()]]);
     }
   }
   return Url::fromUserInput('/user/' . $account->id() . '/information');
@@ -592,20 +598,29 @@ function social_profile_get_default_image() {
 }
 
 /**
- * Implements hook_user_format_name_alter().
+ * Implements hook_social_user_name_display_suggestions().
+ *
+ * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+ * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
  */
-function social_profile_user_format_name_alter(&$name, $account) {
-  /** @var \Drupal\Core\Session\AccountInterface $account */
-  $accountname = '';
+function social_profile_social_user_name_display_suggestions(AccountInterface $account) : array {
+  $suggestions = [];
+
+  /** @var \Drupal\profile\ProfileStorageInterface $storage */
   $storage = \Drupal::entityTypeManager()->getStorage('profile');
-  if (!empty($storage)) {
-    // Returns false.
-    if ($user_profile = $storage->loadByUser($account, 'profile', TRUE)) {
-      $accountname = $user_profile->get('field_profile_first_name')->value . " " . $user_profile->get('field_profile_last_name')->value;
-      $accountname = trim($accountname);
+
+  if ($user_profile = $storage->loadByUser($account, 'profile', TRUE)) {
+    $accountname = trim($user_profile->get('field_profile_first_name')->value . " " . $user_profile->get('field_profile_last_name')->value);
+
+    if (strlen($accountname) > 0) {
+      // Add the full name with a default weight.
+      $suggestions['full_name'] = [
+        'name' => trim($accountname),
+      ];
     }
   }
-  $name = ($accountname !== '') ? $accountname : $name;
+
+  return $suggestions;
 }
 
 /**
@@ -630,4 +645,69 @@ function social_profile_entity_operation_alter(array &$operations, EntityInterfa
       ];
     }
   }
+}
+
+/**
+ * Implements hook_social_user_account_header_account_links().
+ *
+ * Adds the "View my profile" and "Edit profile" link to the user menu.
+ */
+function social_profile_social_user_account_header_account_links(array $context) {
+  // We require a user for these links.
+  if (empty($context['user']) || !($context['user'] instanceof AccountInterface)) {
+    return [];
+  }
+
+  return [
+    'my_profile' => [
+      '#type' => 'link',
+      '#attributes' => [
+        'title' => new TranslatableMarkup('View my profile'),
+      ],
+      '#title' => new TranslatableMarkup('My profile'),
+      '#weight' => 500,
+    ] + Url::fromRoute('user.page')->toRenderArray(),
+    'edit_profile' => [
+      '#type' => 'link',
+      '#attributes' => [
+        'title' => new TranslatableMarkup("Edit profile"),
+      ],
+      '#title' => new TranslatableMarkup("Edit profile"),
+      '#weight' => 1300,
+    ] + Url::fromRoute('entity.profile.type.user_profile_form', [
+      'user' => $context['user']->id(),
+      'profile_type' => 'profile',
+    ])->toRenderArray(),
+  ];
+}
+
+/**
+ * Implements hook_social_user_account_header_items_alter().
+ *
+ * Replaces the default user icon with the user's profile image if available.
+ */
+function social_profile_social_user_account_header_items_alter(array &$menu_items, array $context) {
+  // If we don't have an account_box there's nothing to do.
+  if (empty($menu_items['account_box'])) {
+    return;
+  }
+
+  // A user is required to find the profile image.
+  if (empty($context['user']) || !($context['user'] instanceof AccountInterface)) {
+    return;
+  }
+
+  $storage = \Drupal::entityTypeManager()->getStorage('profile');
+  $profile = $storage->loadByUser($context['user'], 'profile');
+
+  // If the user does not have a profile then there's no profile image.
+  if (empty($profile)) {
+    return;
+  }
+
+  // Provide a render array as image which will overrule the user icon.
+  $menu_items['account_box']['#image'] = \Drupal::entityTypeManager()
+    ->getViewBuilder('profile')
+    ->view($profile, 'small');;
+
 }

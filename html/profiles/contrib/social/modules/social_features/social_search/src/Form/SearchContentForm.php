@@ -2,7 +2,7 @@
 
 namespace Drupal\social_search\Form;
 
-use Drupal\Component\Utility\Html;
+use Drupal\Component\Utility\Xss;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -58,12 +58,18 @@ class SearchContentForm extends FormBase implements ContainerInjectionInterface 
 
     $form['search_input_content'] = [
       '#type' => 'textfield',
+      '#title' => $this->t('Search Content'),
+      '#title_display' => 'invisible',
+      '#weight' => '0',
     ];
 
-    $form['actions'] = ['#type' => 'actions'];
-    $form['actions']['submit'] = [
-      '#type' => 'submit',
-      '#value' => $this->t('Search Content'),
+    $form['actions'] = [
+      '#type' => 'actions',
+      '#weight' => '10',
+      'submit' => [
+        '#type' => 'submit',
+        '#value' => $this->t('Search Content'),
+      ],
     ];
 
     return $form;
@@ -80,7 +86,7 @@ class SearchContentForm extends FormBase implements ContainerInjectionInterface 
     }
     else {
       // Redirect to the search content page with filters in the GET parameters.
-      $search_input = Html::escape($form_state->getValue('search_input_content'));
+      $search_input = Xss::filter($form_state->getValue('search_input_content'));
       $search_input = preg_replace('/[\/]+/', ' ', $search_input);
       $search_content_page = Url::fromRoute("view.$search_all_view.page", ['keys' => $search_input]);
     }

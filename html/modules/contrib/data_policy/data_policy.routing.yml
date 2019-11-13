@@ -42,7 +42,7 @@ data_policy.data_policy:
   path: '/data-policy'
   defaults:
     _controller: '\Drupal\data_policy\Controller\DataPolicy::entityOverviewPage'
-    _title: 'Data Policy'
+    _title_callback: '\Drupal\data_policy\Controller\DataPolicy::entityOverviewTitle'
   requirements:
     _custom_access: '\Drupal\data_policy\Controller\DataPolicy::entityOverviewAccess'
 

@@ -57,6 +57,16 @@ class BlockFieldFormatter extends FormatterBase {
         'content' => $block_instance->build(),
       ];
 
+      $module_handler = \Drupal::service('module_handler');
+      $base_id = $block_instance->getBaseId();
+
+      // If an alter hook wants to modify the block contents, it can append
+      // another #pre_render hook.
+      $module_handler->alter(['block_view', "block_view_{$base_id}"], $elements[$delta], $block_instance);
+
+      // Allow altering of cacheability metadata or setting #create_placeholder.
+      $module_handler->alter(['block_build', "block_build_{$base_id}"], $elements[$delta], $block_instance);
+
       /** @var \Drupal\Core\Render\RendererInterface $renderer */
       $renderer = \Drupal::service('renderer');
       $renderer->addCacheableDependency($elements[$delta], $block_instance);

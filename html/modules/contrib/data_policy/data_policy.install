@@ -26,3 +26,25 @@ function data_policy_uninstall() {
 
   \Drupal::configFactory()->getEditable('data_policy.data_policy')->delete();
 }
+
+/**
+ * Display Name field on the edit form.
+ */
+function data_policy_update_8001() {
+  $config_factory = \Drupal::configFactory();
+  $config = $config_factory->getEditable('core.entity_form_display.data_policy.data_policy.default');
+  $data = $config->getRawData();
+  $data['content']['name'] = [
+    'type' => 'string_textfield',
+    'weight' => -1,
+    'settings' => [
+      'size' => 60,
+      'placeholder' => ''
+    ],
+    'third_party_settings' => [],
+    'region' => 'content'
+
+  ];
+  $config->setData($data);
+  $config->save(TRUE);
+}

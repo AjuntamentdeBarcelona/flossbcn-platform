@@ -23,6 +23,18 @@ function social_profile_privacy_form_social_profile_admin_settings_form_alter(&$
     '#suffix' => '</div>',
   ];
 
+  // Add setting to hide Full Name for users without the `social profile privacy
+  // always show full name` module.
+  $form['privacy']['limit_search_and_mention'] = [
+    '#type' => 'checkbox',
+    '#title' => t('Limit search and mention'),
+    '#description' => t("Enabling this setting causes users' full name to be hidden on the platform when the user has filled in their nickname. This setting won't hide the full name of users who didn't fill in a nickname. Users with the '%display_name' permission will still see the full name whenever available. Only users with the '%search_name' permission will find users using their full name through search or mentions.", [
+      '%display_name' => t('View full name when restricted'),
+      '%search_name' => t('View full name when restricted'),
+    ]),
+    '#default_value' => $config->get('limit_search_and_mention'),
+  ];
+
   $settings_forms = social_profile_privacy_get_settings_forms();
   foreach ($settings_forms as $settings_form_id => $settings_form_config) {
     $options = social_profile_privacy_form_display_options($settings_form_config['entity_type'], $settings_form_config['bundle']);
@@ -95,9 +107,11 @@ function social_profile_privacy_form_social_profile_admin_settings_form_alter(&$
  * To save configuration of fields groups available to hiding.
  */
 function social_profile_privacy_admin_settings_form_submit($form, FormStateInterface $form_state) {
-  $settings_forms = social_profile_privacy_get_settings_forms();
+  $data = [
+    'limit_search_and_mention' => $form_state->getValue('limit_search_and_mention'),
+  ];
 
-  $data = [];
+  $settings_forms = social_profile_privacy_get_settings_forms();
   foreach ($settings_forms as $settings_form_id => $settings_form) {
     $data[$settings_form_id] = $form_state->getValue($settings_form_id);
 
@@ -129,8 +143,7 @@ function social_profile_privacy_form_alter(&$form, FormStateInterface $form_stat
       $settings_form_id = $field_groups['settings_form_id'];
       $profile = $form_state->getFormObject()->getEntity();
       $account = \Drupal::routeMatch()->getParameter('user');
-
-      $uid = $account->id();
+      $uid = $account ? $account->id() : NULL;
       if (empty($uid)) {
         $uid = $profile->get('uid')->target_id;
       }
@@ -438,4 +451,59 @@ function social_profile_privacy_form_field_group_options() {
     unset($field_groups['group_profile_names_image']);
   }
   return $field_groups;
+}
+
+/**
+ * Implements hook_social_user_name_display_suggestions_alter().
+ *
+ * Given that we're being extra strict about real names.
+ * When there is both a full name and a nickname then we combine the two for
+ * users that are allowed to see a full name even when there's a nickname.
+ */
+function social_profile_privacy_social_user_name_display_suggestions_alter(array &$suggestions, AccountInterface $account) {
+  $config = \Drupal::config('social_profile_privacy.settings');
+
+  if (
+    $config->get('limit_search_and_mention')
+    && isset($suggestions['full_name'], $suggestions['nickname'])
+    && \Drupal::currentUser()->hasPermission('social profile privacy always show full name')
+  ) {
+    $suggestions['nickname_with_full_name'] = [
+      'weight' => -PHP_INT_MAX,
+      'name' => $suggestions['nickname']['name'] . ' (' . $suggestions['full_name']['name'] . ')',
+    ];
+  }
+}
+
+/**
+ * Re-saves search indices.
+ *
+ * This triggers the save for search indices that have profile entities as data.
+ * This ensures that the RestrictedNameProcessor is properly added.
+ *
+ * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+ * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+ * @throws \Drupal\Core\Entity\EntityStorageException
+ */
+function _social_profile_privacy_resave_search_indexes() {
+  // If the search api module is not installed we have nothing to do.
+  if (!\Drupal::moduleHandler()->moduleExists('search_api')) {
+    return;
+  }
+
+  // We load all indexes, we assume there will never be hundreds of search
+  // indexes which would create its own problems for a site.
+  $indexes = \Drupal::entityTypeManager()
+    ->getStorage('search_api_index')
+    ->loadMultiple();
+
+  /** @var \Drupal\search_api\IndexInterface $index */
+  foreach ($indexes as $index) {
+    // Check if the search index has profile entities as data source.
+    if ($index->isValidDatasource('entity:profile')) {
+      // Disable and enable the index to ensure that the RestrictedNameProcessor
+      // has the chance to add the field.
+      $index->save();
+    }
+  }
 }

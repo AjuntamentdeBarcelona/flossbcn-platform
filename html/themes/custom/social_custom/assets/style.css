@@ -649,6 +649,9 @@ a.active-entry {
 .page-node-type-page-home .token-visual-drauta .img-inside-100 img{
   height: 108px;
 }
-
+.view-group-information a:not([role='button']), .page-node-type-event .link-content a, .page-node-type-topic .body-text a, #block-social-custom-views-block-activity-stream-group-block-stream-group .iframe-container a:not([role='button']):not(.use-ajax){
+  color: #33b5e5;
+  text-decoration: underline;
+}
 
 

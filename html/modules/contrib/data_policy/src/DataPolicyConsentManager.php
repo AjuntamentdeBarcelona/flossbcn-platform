@@ -72,15 +72,25 @@ class DataPolicyConsentManager implements DataPolicyConsentManagerInterface {
   /**
    * {@inheritdoc}
    */
+  public function hasGivenConsent() {
+    return $this->getState();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function addCheckbox(array &$form) {
     $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
 
-    $link = Link::createFromRoute($this->t('data policy'), 'data_policy.data_policy', [], [
+    $state = $this->getState();
+    $name = $this->entity->getName() ?: $this->t('Data policy');
+
+    $link = Link::createFromRoute(strtolower($name), 'data_policy.data_policy', [], [
       'attributes' => [
         'class' => ['use-ajax'],
         'data-dialog-type' => 'modal',
         'data-dialog-options' => Json::encode([
-          'title' => t('Data policy'),
+          'title' => $name,
           'width' => 700,
           'height' => 700,
         ]),
@@ -94,7 +104,7 @@ class DataPolicyConsentManager implements DataPolicyConsentManagerInterface {
       '#title' => $this->t('I agree with the @url', [
         '@url' => $link->toString(),
       ]),
-      '#default_value' => $this->getState() == UserConsentInterface::STATE_AGREE,
+      '#default_value' => $state == UserConsentInterface::STATE_AGREE,
       '#required' => $enforce_consent && $this->currentUser->isAnonymous(),
     ];
   }

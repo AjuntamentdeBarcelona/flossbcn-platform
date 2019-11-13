@@ -105,6 +105,27 @@ class DataPolicy extends ControllerBase implements ContainerInjectionInterface {
   }
 
   /**
+   * Show title of data policy.
+   *
+   * @return string
+   *   The data policy title.
+   */
+  public function entityOverviewTitle() {
+    $entity_id = $this->dataPolicyConsentManager()->getConfig('entity_id');
+
+    if (!empty($entity_id)) {
+      $title = $this->entityTypeManager()->getStorage('data_policy')
+        ->load($entity_id)
+        ->getName();
+    }
+    else {
+      $title = $this->t('Data policy');
+    }
+
+    return $title;
+  }
+
+  /**
    * Check if data policy is created.
    *
    * @return \Drupal\Core\Access\AccessResult

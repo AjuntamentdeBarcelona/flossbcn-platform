@@ -2,8 +2,9 @@
 
 namespace Drupal\activity_logger\Service;
 
-use Drupal\Core\Entity\Entity;
+use Drupal\Core\Entity\EntityBase;
 use Drupal\message\Entity\Message;
+use Drupal\user\EntityOwnerInterface;
 
 /**
  * Class ActivityLoggerFactory.
@@ -16,12 +17,12 @@ class ActivityLoggerFactory {
   /**
    * Create message entities.
    *
-   * @param \Drupal\Core\Entity\Entity $entity
+   * @param \Drupal\Core\Entity\EntityBase $entity
    *   Entity object to create a message for.
    * @param string $action
    *   Action string. Defaults to 'create'.
    */
-  public function createMessages(Entity $entity, $action) {
+  public function createMessages(EntityBase $entity, $action) {
     // Get all messages that are responsible for creating items.
     $message_types = $this->getMessageTypes($action, $entity);
     // Loop through those message types and create messages.
@@ -39,8 +40,22 @@ class ActivityLoggerFactory {
 
       // Set the values.
       $new_message['template'] = $message_type;
-      $new_message['created'] = $entity->getCreatedTime();
-      $new_message['uid'] = $entity->getOwner()->id();
+
+      // The flagging entity does not implement getCreatedTime().
+      if ($entity->getEntityTypeId() === 'flagging') {
+        $new_message['created'] = $entity->get('created')->value;
+      }
+      else {
+        $new_message['created'] = $entity->getCreatedTime();
+      }
+
+      // Get the owner or default to anonymous.
+      if ($entity instanceof EntityOwnerInterface && $entity->getOwner() !== NULL) {
+        $new_message['uid'] = $entity->getOwner()->id();
+      }
+      else {
+        $new_message['uid'] = 0;
+      }
 
       $additional_fields = [
         ['name' => 'field_message_context', 'type' => 'list_string'],
@@ -74,13 +89,13 @@ class ActivityLoggerFactory {
    *
    * @param string $action
    *   Action string, e.g. 'create'.
-   * @param \Drupal\Core\Entity\Entity $entity
+   * @param \Drupal\Core\Entity\EntityBase $entity
    *   Entity object.
    *
    * @return array
    *   Array of message types.
    */
-  public function getMessageTypes($action, Entity $entity) {
+  public function getMessageTypes($action, EntityBase $entity) {
     // Init.
     $messagetypes = [];
 

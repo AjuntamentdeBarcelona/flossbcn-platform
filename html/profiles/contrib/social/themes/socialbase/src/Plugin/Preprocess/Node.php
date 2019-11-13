@@ -21,6 +21,7 @@ class Node extends PreprocessBase {
    * {@inheritdoc}
    */
   protected function preprocessElement(Element $element, Variables $variables) {
+    /** @var \Drupal\node\Entity\Node $node */
     $node = $variables['node'];
     $account = $node->getOwner();
     $variables['content_type'] = $node->bundle();
@@ -88,10 +89,6 @@ class Node extends PreprocessBase {
       }
 
       $variables['display_submitted'] = TRUE;
-    }
-
-    if ($variables['view_mode'] === 'hero') {
-      unset($variables['label']);
     }
 
     // Date formats.
@@ -178,8 +175,8 @@ class Node extends PreprocessBase {
     // for this node, we can print the count even for Anonymous.
     $enabled_types = \Drupal::config('like_and_dislike.settings')->get('enabled_types');
     $variables['likes_count'] = NULL;
-    if (in_array($variables['node']->getType(), $enabled_types['node'])) {
-      $variables['likes_count'] = _socialbase_node_get_like_count($variables['node']->getEntityTypeId(), $variables['node']->id());
+    if (in_array($node->getType(), $enabled_types['node'])) {
+      $variables['likes_count'] = _socialbase_node_get_like_count($node->getEntityTypeId(), $node->id());
     }
 
     // Add styles for nodes in preview.
@@ -206,6 +203,29 @@ class Node extends PreprocessBase {
             $variables['no_image'] = FALSE;
           }
         }
+      }
+    }
+
+    // For full view modes we render the links outside of the lazy builder so
+    // we can render only subgroups of links.
+    if ($variables['view_mode'] === 'full' && isset($variables['content']['links']['#lazy_builder'])) {
+      // array_merge ensures other properties are kept (e.g. weight).
+      $variables['content']['links'] = array_merge(
+        $variables['content']['links'],
+        call_user_func_array(
+          $variables['content']['links']['#lazy_builder'][0],
+          $variables['content']['links']['#lazy_builder'][1]
+        )
+      );
+      unset($variables['content']['links']['#lazy_builder']);
+    }
+
+    // A landing page has a different way of determining this.
+    if ($node->getType() === 'landing_page') {
+      $variables['no_image'] = FALSE;
+      $image = _social_landing_page_get_hero_image($node);
+      if (empty($image)) {
+        $variables['no_image'] = TRUE;
       }
     }
 

@@ -21,12 +21,12 @@ class ProfileTest extends ProfileTestBase {
     $this->drupalLogin($this->adminUser);
 
     $profile_fullname = $this->randomString();
-    $create_url = Url::fromRoute('entity.profile.type.user_profile_form', [
+    $add_url = Url::fromRoute('entity.profile.type.user_profile_form', [
       'user' => $this->loggedInUser->id(),
       'profile_type' => $this->type->id(),
     ]);
-    $this->drupalGet($create_url->toString());
-    $this->assertSession()->titleEquals("Create {$this->type->label()} | Drupal");
+    $this->drupalGet($add_url);
+    $this->assertSession()->titleEquals("{$this->type->label()} | Drupal");
     $this->assertSession()->buttonNotExists('Save and make default');
     $edit = [
       'profile_fullname[0][value]' => $profile_fullname,
@@ -39,8 +39,8 @@ class ProfileTest extends ProfileTestBase {
     $profile = $storage->loadDefaultByUser($this->loggedInUser, $this->type->id());
     $this->assertEquals($profile_fullname, $profile->get('profile_fullname')->value);
 
-    $this->drupalGet($profile->toUrl('edit-form')->toString());
-    $this->assertSession()->titleEquals("Edit {$this->type->label()} profile #{$profile->id()} | Drupal");
+    $this->drupalGet($profile->toUrl('edit-form'));
+    $this->assertSession()->titleEquals("Edit {$this->type->label()} #{$profile->id()} | Drupal");
 
     $profile_fullname = $this->randomString();
     $edit = [
@@ -60,13 +60,13 @@ class ProfileTest extends ProfileTestBase {
     $profile = $this->createProfile($this->type, User::getAnonymousUser());
 
     $this->drupalLogin($this->adminUser);
-    $this->drupalGet($profile->toUrl('edit-form')->toString());
+    $this->drupalGet($profile->toUrl('edit-form'));
     $profile_fullname = $this->randomString();
     $edit = [
       'profile_fullname[0][value]' => $profile_fullname,
     ];
     $this->submitForm($edit, 'Save');
-    $this->assertSession()->addressEquals($profile->toUrl('collection')->toString());
+    $this->assertSession()->addressEquals($profile->toUrl('collection'));
   }
 
   /**
@@ -112,11 +112,11 @@ class ProfileTest extends ProfileTestBase {
 
     $this->drupalLogin($this->adminUser);
     $this->drupalGet(Url::fromRoute('entity.profile.type.user_profile_form', ['user' => $test_user1->id(), 'profile_type' => $id]));
-    $this->assertSession()->linkExists(new FormattableMarkup('Add new @type', ['@type' => $this->type->label()]));
+    $this->assertSession()->linkExists('Add new profile');
     $this->assertSession()->statusCodeEquals(200);
     $this->drupalLogin($test_user1);
     $this->drupalGet(Url::fromRoute('entity.profile.type.user_profile_form', ['user' => $test_user1->id(), 'profile_type' => $id]));
-    $this->assertSession()->linkExists(new FormattableMarkup('Add new @type', ['@type' => $this->type->label()]));
+    $this->assertSession()->linkExists('Add new profile');
     $this->assertSession()->statusCodeEquals(200);
     $this->drupalGet(Url::fromRoute('entity.profile.type.user_profile_form', ['user' => $test_user2->id(), 'profile_type' => $id]));
     $this->assertSession()->linkNotExists(new FormattableMarkup('Add new @type', ['@type' => $this->type->label()]));

@@ -27,7 +27,7 @@ class EventAnEnrollOverride implements ConfigFactoryOverrideInterface {
     if (in_array($config_name, $names)) {
       $config = $config_factory->getEditable($config_name);
 
-      $children = $config->get('third_party_settings.field_group.group_event_visibility.children');
+      $children = $config->get('third_party_settings.field_group.group_enrollment.children');
       $children[] = 'field_event_an_enroll';
 
       $content = $config->get('content');
@@ -44,13 +44,42 @@ class EventAnEnrollOverride implements ConfigFactoryOverrideInterface {
       $overrides[$config_name] = [
         'third_party_settings' => [
           'field_group' => [
-            'group_event_visibility' => [
+            'group_enrollment' => [
               'children' => $children,
             ],
           ],
         ],
         'content' => $content,
       ];
+    }
+
+    $config_name = 'views.view.event_manage_enrollments';
+    if (in_array($config_name, $names)) {
+      $config = $config_factory->getEditable($config_name);
+
+      $preconfiguration = $config->get('display.default.display_options.fields.views_bulk_operations_bulk_form.preconfiguration.social_event_managers_send_email_action');
+
+      $overrides[$config_name] = [
+        'display' => [
+          'default' => [
+            'display_options' => [
+              'fields' => [
+                'social_views_bulk_operations_bulk_form_enrollments_1' => [
+                  'selected_actions' => [
+                    'social_event_an_enroll_send_email_action' => 'social_event_an_enroll_send_email_action',
+                  ],
+                  'preconfiguration' => [
+                    'social_event_an_enroll_send_email_action' => $preconfiguration,
+                  ],
+                ],
+              ],
+            ],
+          ],
+        ],
+      ];
+
+      // Unset the regular Email.
+      $overrides[$config_name]['display']['default']['display_options']['fields']['social_views_bulk_operations_bulk_form_enrollments_1']['selected_actions']['social_event_managers_send_email_action'] = 0;
     }
 
     return $overrides;

@@ -41,6 +41,14 @@ svg[class^="icon-"] {
   vertical-align: middle;
 }
 
+.icon-visibility {
+  width: 15px;
+  height: 18px;
+  display: inline-block;
+  vertical-align: text-bottom;
+  fill: #4d4d4d;
+}
+
 // covers the parent box
 .icon-responsive {
   width: 100%;
@@ -67,6 +75,15 @@ svg[class^="icon-"] {
   background-image: url(../images/icons/icon-help.svg);
   width: 15px;
   height: 15px;
+}
+
+.glyphicon-info-sign:before {
+  background-image: url(../images/icons/icon-info-light.svg);
+  width: 15px;
+  height: 15px;
+}
+#hero .glyphicon-info-sign:before {
+  background-image: url(../images/icons/icon-info-white.svg);
 }
 
 .glyphicon-picture:before {

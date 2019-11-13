@@ -24,6 +24,7 @@ Feature: Like post stream
     And I wait for AJAX to finish
 
     Given I am logged in as "user_1"
+    And I wait for the queue to be empty
     And I am on "/notifications"
     Then I should see "Isaac Newton likes your post"
 
@@ -40,7 +41,6 @@ Feature: Like post stream
     And I press "Post"
     Then I should see the success message "Your post has been posted."
     And I should see "This is a public post."
-    Then I should be on "/stream"
 
     Given I am an anonymous user
     And I am on the homepage
